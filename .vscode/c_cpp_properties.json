@@ -1,0 +1,39 @@
+{
+    "configurations": [
+        {
+            "name": "Target 1",
+            "includePath": [
+                "e:\\work\\tan_tou\\new_project\\example\\EFM8LB10F16_uart0_STDIO\\inc",
+                "C:\\Keil_v5\\C51\\INC",
+                "e:\\work\\tan_tou\\new_project\\example\\EFM8LB10F16_uart0_STDIO",
+                "e:\\work\\tan_tou\\new_project\\example\\EFM8LB10F16_uart0_STDIO\\src"
+            ],
+            "defines": [
+                "__C51__",
+                "__VSCODE_C51__",
+                "reentrant=",
+                "compact=",
+                "small=",
+                "large=",
+                "data=",
+                "idata=",
+                "pdata=",
+                "bdata=",
+                "xdata=",
+                "code=",
+                "bit=char",
+                "sbit=char",
+                "sfr=char",
+                "sfr16=int",
+                "sfr32=int",
+                "interrupt=",
+                "using=",
+                "_at_=",
+                "_priority_=",
+                "_task_="
+            ],
+            "intelliSenseMode": "${default}"
+        }
+    ],
+    "version": 4
+}
