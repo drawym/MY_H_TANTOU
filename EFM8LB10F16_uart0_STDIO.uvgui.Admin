@@ -1874,9 +1874,9 @@
       </Doc>
       <Doc>
         <Name>.\src\EFM8LB1_UART_STDIO.c</Name>
-        <ColumnNumber>14</ColumnNumber>
-        <TopLine>101</TopLine>
-        <CurrentLine>115</CurrentLine>
+        <ColumnNumber>34</ColumnNumber>
+        <TopLine>49</TopLine>
+        <CurrentLine>70</CurrentLine>
         <Folding>1</Folding>
         <ContractedFolders></ContractedFolders>
         <PaneID>0</PaneID>

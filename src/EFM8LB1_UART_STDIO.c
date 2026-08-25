@@ -4,6 +4,15 @@
 #include "InitDevice.h"
 
 
+/*延时函数*/
+void delay_ms(uint16_t ms)
+{
+   // while(ms--)
+   // {
+   //    while(T0 != 0);
+   //    T0 = 0;
+   // }
+}
 
 
 
@@ -254,6 +263,7 @@ void FrameDataAcquisition(void)
             else
             {
                logic_state = LOGIC_STATE_IDLE;  //注意logic_state需要在完成后续的状态机后设置为空闲状态
+               RETARGET_PRINTF("\r\n[ERROR] TYPE-ERROR\r\n");
             }
 
 
