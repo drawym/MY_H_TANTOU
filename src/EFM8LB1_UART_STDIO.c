@@ -2,28 +2,28 @@
 #include <SI_EFM8LB1_Register_Enums.h>
 #include "retargetserial.h"
 #include "InitDevice.h"
+#include "EFM8LB1_FlashPrimitives.h"
+#include "EFM8LB1_FlashUtils.h"
+#include "string.h"
 
+// EFM8LB10F16 是 16KB Flash 设备，最后一页地址为 0x3E00（页大小512字节）
+// 这里使用倒数第1页的起始地址存放用户数据
+#define FLASH_STORAGE_ADDR  0x3E00
+#define FLASH_STORAGE_MAGIC 0xA5A5
 
 /*延时函数*/
 extern volatile uint32_t counter ;
 uint32_t start_counter =0;
 void delay_ms(uint16_t ms)
 {
-	start_counter = counter;
+	// start_counter = counter;
 	
-	while((counter - start_counter ) < (2*ms))
-	{
+	// while((counter - start_counter ) < (2*ms))
+	// {
 		
-	};
+	// };
 	
 }
-
-
-
-
-
-
-
 
 /***********************************逻辑控制*************************************/
 
@@ -53,6 +53,91 @@ typedef enum
 logic_state_t logic_state; //状态机执行状态
 
 /***********************************逻辑控制*************************************/
+
+
+
+
+
+
+
+
+
+/*************************************flash*********************************** */
+
+typedef struct
+{
+   uint16_t magic;
+   logic_control_t mydata;
+   uint8_t checksum;
+} flash_storage_t;
+
+static uint8_t flashChecksum(uint8_t *buf, uint8_t len)
+{
+   uint8_t sum = 0;
+   uint8_t i;
+   for (i = 0; i < len; i++)
+   {
+      sum += buf[i];
+   }
+   return sum;
+}
+
+void saveLogicControl(void)
+{
+   flash_storage_t storage;
+   uint8_t *p;
+   uint16_t i;
+   FLADDR addr = FLASH_STORAGE_ADDR;
+
+   storage.magic = FLASH_STORAGE_MAGIC;
+   storage.mydata = logic_control;
+   storage.checksum = flashChecksum((uint8_t *)&storage.mydata, sizeof(logic_control_t));
+
+   FLASH_PageErase(FLASH_STORAGE_ADDR);
+
+   p = (uint8_t *)&storage;
+   for (i = 0; i < sizeof(flash_storage_t); i++)
+   {
+      FLASH_ByteWrite(addr + i, p[i]);
+   }
+}
+
+uint8_t readLogicControl(void)
+{
+   flash_storage_t storage;
+   uint8_t *p;
+   uint16_t i;
+   uint8_t calc_chk;
+   FLADDR addr = FLASH_STORAGE_ADDR;
+
+   p = (uint8_t *)&storage;
+   for (i = 0; i < sizeof(flash_storage_t); i++)
+   {
+      p[i] = FLASH_ByteRead(addr + i);
+   }
+
+   if (storage.magic != FLASH_STORAGE_MAGIC)
+   {
+      return 0;
+   }
+
+   calc_chk = flashChecksum((uint8_t *)&storage.mydata, sizeof(logic_control_t));
+   if (storage.checksum != calc_chk)
+   {
+      return 0;
+   }
+
+   logic_control = storage.mydata;
+   return 1;
+}
+
+/*************************************flash*********************************** */
+
+
+
+
+
+
 
 
 
@@ -332,10 +417,24 @@ void main (void)
    SCON0 |= 0x02; // set TI (transmit ready)
 
 
-   /*取flash的数据，还没做*/
+   /*取flash的数据*/
+   {
+      // uint8_t ret;
+      // ret = readLogicControl();
+      // if (ret == 0)
+      // {
+      //    logic_control.zero_control_value = 0;
+      //    logic_control.relay_status = 0;
+      //    saveLogicControl();
+      //    RETARGET_PRINTF("\r\n[INIT_Flash_ok]\r\n");
+      //    //打印信息
+      //    RETARGET_PRINTF("\r\n[INFO] logic_control.zero_control_value = %d, logic_control.relay_status = %d\r\n", logic_control.zero_control_value, logic_control.relay_status);
 
 
-
+      // }
+      // else
+      //    RETARGET_PRINTF("\r\n[INIT_Flash_error]\r\n");
+   }
 
    /*上电对DAC即P2.6进行初始化，输出之前flash保存的电压*/
 
@@ -386,7 +485,7 @@ void main (void)
 
             /*在这里写零点控制的逻辑，也就是控制DAC即P2.6，输出对应0-4096的电压*/
 
-
+            saveLogicControl();
             logic_state = LOGIC_STATE_IDLE; 
             break;
          case LOGIC_STATE_DEFLUX:  //消磁状态
@@ -404,11 +503,13 @@ void main (void)
             if (logic_control.relay_status == 0x00)
             {
                RELAY_A();
+               saveLogicControl();
                /*发送成功的帧*/
             }
             else if (logic_control.relay_status == 0x01)
             {
                RELAY_B();
+               saveLogicControl();
                /*发送成功的帧*/
             }
             else
@@ -421,5 +522,3 @@ void main (void)
 
    }
 }
-
-

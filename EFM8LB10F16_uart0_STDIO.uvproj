@@ -177,7 +177,7 @@
           </Flash1>
           <bUseTDR>0</bUseTDR>
           <Flash2>BIN\SiC8051F.dll</Flash2>
-          <Flash3>"" ()</Flash3>
+          <Flash3></Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -395,6 +395,11 @@
               <FileName>Interrupts.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\Interrupts.c</FilePath>
+            </File>
+            <File>
+              <FileName>EFM8LB1_FlashPrimitives.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\EFM8LB1_FlashPrimitives.c</FilePath>
             </File>
           </Files>
         </Group>
