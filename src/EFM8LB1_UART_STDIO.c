@@ -4,6 +4,7 @@
 #include "InitDevice.h"
 #include "EFM8LB1_FlashPrimitives.h"
 #include "EFM8LB1_FlashUtils.h"
+#include "EFM8LB1_DAC.h"
 #include "string.h"
 
 // EFM8LB10F16 是 16KB Flash 设备，最后一页地址为 0x3E00（页大小512字节）
@@ -185,6 +186,8 @@ void SiLabs_Startup (void)
 {
 }
 
+
+
 unsigned char uart_getchar(void)
 {
     unsigned char c1;
@@ -205,6 +208,8 @@ unsigned char uart_getchar(void)
 #define RELAY_SWITCH_TYPE 0xD0
 
 
+
+
 typedef struct
 {
    unsigned char data_value[UART_RX_BUFFER_SIZE];
@@ -222,7 +227,6 @@ typedef struct
 } uart_rx_buffer_t;
 
 uart_rx_buffer_t uart_rx_buffer={0};
-
 
 
 /**
@@ -322,6 +326,8 @@ void FrameDataAcquisition(void)
             {
                /*对数据长度后面的数据进行拼接*/
                logic_control.zero_control_value = ((uint16_t)uart_rx_buffer.data_value[3]) << 8  | (uart_rx_buffer.data_value[4]);
+               
+               
                logic_state = LOGIC_STATE_ZERO_CONTROL;
                RETARGET_PRINTF("\r\n[INFO] zero_control_value = %d\r\n", logic_control.zero_control_value);
             }
@@ -391,10 +397,11 @@ void main (void)
 {
 
    enter_DefaultMode_from_RESET();
+   DAC1_Init();
 
    IE_EA = 1;                          // Enable global interrupts
 
-//   while (1) {}
+
 	
 	
 	
@@ -417,7 +424,17 @@ void main (void)
 
    }
 
-   /*上电对DAC即P2.6进行初始化，输出之前flash保存的电压*/
+   /* Restore saved DAC code and reject invalid legacy data. */
+   if (logic_control.zero_control_value <= DAC1_MAX_CODE)
+   {
+      DAC1_SetCode(logic_control.zero_control_value);
+   }
+   else
+   {
+      logic_control.zero_control_value = 0;
+      DAC1_SetCode(0);
+      saveLogicControl();
+   }
 
 
 
@@ -461,9 +478,20 @@ void main (void)
 
          case LOGIC_STATE_ZERO_CONTROL:  //零点控制状态
 
-            /*在这里写零点控制的逻辑，也就是控制DAC即P2.6，输出对应0-4096的电压*/
 
-            saveLogicControl();
+
+            if(logic_control.zero_control_value>=DAC1_MIN_CODE && logic_control.zero_control_value<=DAC1_MAX_CODE)
+            {
+               DAC1_SetCode(logic_control.zero_control_value);
+               saveLogicControl();
+            }
+            else
+            {
+               RETARGET_PRINTF("\r\n[ERROR] ZERO_CONTROL_VALUE_ERROR\r\n");
+            }
+
+
+
             logic_state = LOGIC_STATE_IDLE; 
             break;
          case LOGIC_STATE_DEFLUX:  //消磁状态

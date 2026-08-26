@@ -401,6 +401,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\EFM8LB1_FlashPrimitives.c</FilePath>
             </File>
+            <File>
+              <FileName>EFM8LB1_DAC.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\EFM8LB1_DAC.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

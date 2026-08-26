@@ -1,0 +1,63 @@
+C51 COMPILER V9.60.0.0   EFM8LB1_DAC                                                       08/26/2026 16:55:35 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE EFM8LB1_DAC
+OBJECT MODULE PLACED IN .\Objects\EFM8LB1_DAC.obj
+COMPILER INVOKED BY: E:\Keil_c51\C51\BIN\C51.EXE src\EFM8LB1_DAC.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\inc) DEBUG OBJECTEX
+                    -TEND PRINT(.\Listings\EFM8LB1_DAC.lst) TABS(2) OBJECT(.\Objects\EFM8LB1_DAC.obj)
+
+line level    source
+
+   1          #include <SI_EFM8LB1_Register_Enums.h>
+   2          #include "EFM8LB1_DAC.h"
+   3          
+   4          static uint16_t dac1_code;
+   5          
+   6          void DAC1_Init(void)
+   7          {
+   8   1          SFRPAGE = 0x00;
+   9   1          P3MDIN &= (uint8_t)~P3MDIN_B1__DIGITAL;
+  10   1          P3MDOUT &= (uint8_t)~P3MDOUT_B1__PUSH_PULL;
+  11   1      
+  12   1          REF0CN = REF0CN_VREFSL__VREF_2P4;
+  13   1          DACGCF0 = DACGCF0_D01REFSL__VREF
+  14   1                  | DACGCF0_D23REFSL__VREF
+  15   1                  | DACGCF0_D1SRC__DAC1;
+  16   1          DAC1CF0 = DAC1CF0_EN__ENABLE
+  17   1                  | DAC1CF0_UPDATE__SYSCLK
+  18   1                  | DAC1CF0_LJST__RIGHT_JUSTIFY
+  19   1                  | DAC1CF0_RSTMD__NORMAL;
+  20   1      
+  21   1          DAC1_SetCode(0);
+  22   1      }
+  23          
+  24          void DAC1_SetCode(uint16_t mycode)
+  25          {
+  26   1          if (mycode > DAC1_MAX_CODE)
+  27   1          {
+  28   2              mycode = DAC1_MAX_CODE;
+  29   2          }
+  30   1      
+  31   1          dac1_code = mycode;
+  32   1          DAC1H = (uint8_t)(mycode >> 8);
+  33   1          DAC1L = (uint8_t)(mycode & 0xFF);
+  34   1      }
+  35          
+  36          uint16_t DAC1_GetCode(void)
+  37          {
+  38   1          return dac1_code;
+  39   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     56    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
