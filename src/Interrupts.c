@@ -21,6 +21,7 @@
 volatile uint32_t counter = 0;  //这个实际上是500us进来一次
 SI_INTERRUPT (TIMER0_ISR, TIMER0_IRQn)
 {
+   // P2 ^= 0x02; // 
    counter++;
 }
 

@@ -13,13 +13,13 @@
       <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
-          <Device>EFM8LB10F16E-QFN24</Device>
+          <Device>EFM8LB12F64E-QFN32</Device>
           <Vendor>Silicon Labs</Vendor>
-          <Cpu>IRAM(0-0xFF) XRAM(0-0x3FF) IROM(0-0x3FFF) CLOCK(72000000)</Cpu>
+          <Cpu>IRAM(0-0xFF) XRAM(0-0xFFF) IROM(0-0xF9FF) CLOCK(72000000)</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
           <StartupFile>"ASM\shared\si8051Base\SILABS_STARTUP.A51"("Silabs specific 8051 Startup Code")</StartupFile>
           <FlashDriverDll></FlashDriverDll>
-          <DeviceId>8047</DeviceId>
+          <DeviceId>8029</DeviceId>
           <RegisterFile>SI_EFM8LB1_Register_Enums.h</RegisterFile>
           <MemoryEnv></MemoryEnv>
           <Cmp></Cmp>
@@ -110,11 +110,11 @@
           <SimDllName>S8051.DLL</SimDllName>
           <SimDllArguments></SimDllArguments>
           <SimDlgDll>DCYG.DLL</SimDlgDll>
-          <SimDlgDllArguments>-pEFM8LB10F16E_QFN24</SimDlgDllArguments>
+          <SimDlgDllArguments>-pEFM8LB12F64E_QFN32</SimDlgDllArguments>
           <TargetDllName>S8051.DLL</TargetDllName>
           <TargetDllArguments></TargetDllArguments>
           <TargetDlgDll>TCYG.DLL</TargetDlgDll>
-          <TargetDlgDllArguments>-pEFM8LB10F16E_QFN24</TargetDlgDllArguments>
+          <TargetDlgDllArguments>-pEFM8LB12F64E_QFN32</TargetDlgDllArguments>
         </DllOption>
         <DebugOption>
           <OPTHX>
@@ -177,7 +177,7 @@
           </Flash1>
           <bUseTDR>0</bUseTDR>
           <Flash2>BIN\SiC8051F.dll</Flash2>
-          <Flash3></Flash3>
+          <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -273,7 +273,7 @@
               <IRO>
                 <Type>1</Type>
                 <StartAddress>0x0</StartAddress>
-                <Size>0x4000</Size>
+                <Size>0xfa00</Size>
               </IRO>
               <IRA>
                 <Type>0</Type>
@@ -283,7 +283,7 @@
               <XRA>
                 <Type>0</Type>
                 <StartAddress>0x0</StartAddress>
-                <Size>0x400</Size>
+                <Size>0x1000</Size>
               </XRA>
               <XRA512>
                 <Type>0</Type>

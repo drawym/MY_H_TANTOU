@@ -9,19 +9,19 @@
 // EFM8LB10F16 是 16KB Flash 设备，最后一页地址为 0x3E00（页大小512字节）
 // 这里使用倒数第1页的起始地址存放用户数据
 #define FLASH_STORAGE_ADDR  0x3E00
-#define FLASH_STORAGE_MAGIC 0xA5A5
+
 
 /*延时函数*/
 extern volatile uint32_t counter ;
 uint32_t start_counter =0;
 void delay_ms(uint16_t ms)
 {
-	// start_counter = counter;
+	start_counter = counter;
 	
-	// while((counter - start_counter ) < (2*ms))
-	// {
+	while((counter - start_counter ) < (2*ms))
+	{
 		
-	// };
+	};
 	
 }
 
@@ -34,7 +34,7 @@ typedef struct
 
 
    uint16_t zero_control_value; //零点控制值
-   uint8_t relay_status; //继电器状态 00是档位A 01是档位B
+   uint16_t relay_status; //继电器状态 00是档位A 01是档位B
 
 
 } logic_control_t;
@@ -66,9 +66,7 @@ logic_state_t logic_state; //状态机执行状态
 
 typedef struct
 {
-   uint16_t magic;
    logic_control_t mydata;
-   uint8_t checksum;
 } flash_storage_t;
 
 static uint8_t flashChecksum(uint8_t *buf, uint8_t len)
@@ -89,9 +87,7 @@ void saveLogicControl(void)
    uint16_t i;
    FLADDR addr = FLASH_STORAGE_ADDR;
 
-   storage.magic = FLASH_STORAGE_MAGIC;
    storage.mydata = logic_control;
-   storage.checksum = flashChecksum((uint8_t *)&storage.mydata, sizeof(logic_control_t));
 
    FLASH_PageErase(FLASH_STORAGE_ADDR);
 
@@ -114,17 +110,6 @@ uint8_t readLogicControl(void)
    for (i = 0; i < sizeof(flash_storage_t); i++)
    {
       p[i] = FLASH_ByteRead(addr + i);
-   }
-
-   if (storage.magic != FLASH_STORAGE_MAGIC)
-   {
-      return 0;
-   }
-
-   calc_chk = flashChecksum((uint8_t *)&storage.mydata, sizeof(logic_control_t));
-   if (storage.checksum != calc_chk)
-   {
-      return 0;
    }
 
    logic_control = storage.mydata;
@@ -338,16 +323,19 @@ void FrameDataAcquisition(void)
                /*对数据长度后面的数据进行拼接*/
                logic_control.zero_control_value = ((uint16_t)uart_rx_buffer.data_value[3]) << 8  | (uart_rx_buffer.data_value[4]);
                logic_state = LOGIC_STATE_ZERO_CONTROL;
+               RETARGET_PRINTF("\r\n[INFO] zero_control_value = %d\r\n", logic_control.zero_control_value);
             }
             else if (uart_rx_buffer.type == DEFLUX_TYPE)
             {
                logic_state = LOGIC_STATE_DEFLUX;
+               RETARGET_PRINTF("\r\n[INFO] DEFLUX\r\n");
             }
             else if (uart_rx_buffer.type == RELAY_SWITCH_TYPE)
             {
                logic_state = LOGIC_STATE_RELAY_SWITCH;
                /*只有一个数据，即数据长度是1*/
-               logic_control.relay_status = uart_rx_buffer.data_value[3];
+               logic_control.relay_status = ((uint16_t)uart_rx_buffer.data_value[3]);
+               RETARGET_PRINTF("\r\n[INFO] relay_status = %d\r\n", logic_control.relay_status);
             }
             else
             {
@@ -419,21 +407,14 @@ void main (void)
 
    /*取flash的数据*/
    {
-      // uint8_t ret;
-      // ret = readLogicControl();
-      // if (ret == 0)
-      // {
-      //    logic_control.zero_control_value = 0;
-      //    logic_control.relay_status = 0;
-      //    saveLogicControl();
-      //    RETARGET_PRINTF("\r\n[INIT_Flash_ok]\r\n");
-      //    //打印信息
-      //    RETARGET_PRINTF("\r\n[INFO] logic_control.zero_control_value = %d, logic_control.relay_status = %d\r\n", logic_control.zero_control_value, logic_control.relay_status);
+      uint8_t ret;
+      ret = readLogicControl();
+    
+  
+      RETARGET_PRINTF("\r\n[INIT_Flash_ok]\r\n");
+      //打印信息
+      RETARGET_PRINTF("\r\n[INFO] logic_control.zero_control_value = %d, logic_control.relay_status = %d\r\n", logic_control.zero_control_value, logic_control.relay_status);
 
-
-      // }
-      // else
-      //    RETARGET_PRINTF("\r\n[INIT_Flash_error]\r\n");
    }
 
    /*上电对DAC即P2.6进行初始化，输出之前flash保存的电压*/
@@ -462,9 +443,6 @@ void main (void)
       }
 
    }
-
-
-
 
 
 
@@ -505,12 +483,14 @@ void main (void)
                RELAY_A();
                saveLogicControl();
                /*发送成功的帧*/
+               RETARGET_PRINTF("\r\n[INFO] RELAY_A\r\n");
             }
             else if (logic_control.relay_status == 0x01)
             {
                RELAY_B();
                saveLogicControl();
                /*发送成功的帧*/
+               RETARGET_PRINTF("\r\n[INFO] RELAY_B\r\n");
             }
             else
             {

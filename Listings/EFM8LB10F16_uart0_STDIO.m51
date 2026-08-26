@@ -1,4 +1,4 @@
-BL51 BANKED LINKER/LOCATER V6.22.2.0                                                    08/26/2026  13:35:25  PAGE 1
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                    08/26/2026  14:07:49  PAGE 1
 
 
 BL51 BANKED LINKER/LOCATER V6.22.2.0, INVOKED BY:
@@ -20,6 +20,7 @@ INPUT MODULES INCLUDED:
   E:\KEIL_C51\C51\LIB\C51S.LIB (?C?COPY)
   E:\KEIL_C51\C51\LIB\C51S.LIB (?C?CLDOPTR)
   E:\KEIL_C51\C51\LIB\C51S.LIB (?C?CSTOPTR)
+  E:\KEIL_C51\C51\LIB\C51S.LIB (?C?ULCMP)
   E:\KEIL_C51\C51\LIB\C51S.LIB (PRINTF)
   E:\KEIL_C51\C51\LIB\C51S.LIB (?C?CLDPTR)
   E:\KEIL_C51\C51\LIB\C51S.LIB (?C?CSTPTR)
@@ -36,16 +37,15 @@ LINK MAP OF MODULE:  .\Objects\EFM8LB10F16_uart0_STDIO (?C_STARTUP)
 
             * * * * * * *   D A T A   M E M O R Y   * * * * * * *
             REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
-            DATA    0008H     0016H     UNIT         _DATA_GROUP_
-                    001EH     0002H                  *** GAP ***
+            DATA    0008H     0017H     UNIT         _DATA_GROUP_
+                    001FH     0001H                  *** GAP ***
             BIT     0020H.0   0001H.1   UNIT         _BIT_GROUP_
-            BIT     0021H.1   0000H.1   UNIT         ?BI?_FLASH_BYTEREAD?EFM8LB1_FLASHPRIMITIVES
-                    0021H.2   0000H.6                *** GAP ***
-            DATA    0022H     0022H     UNIT         ?DT?EFM8LB1_UART_STDIO
-            DATA    0044H     000DH     UNIT         ?DT?READLOGICCONTROL?EFM8LB1_UART_STDIO
-            DATA    0051H     0004H     UNIT         ?DT?INTERRUPTS
-            DATA    0055H     0003H     UNIT         ?DT?_CALCCHECKSUM?EFM8LB1_UART_STDIO
-            IDATA   0058H     0001H     UNIT         ?STACK
+                    0021H.1   0000H.7                *** GAP ***
+            DATA    0022H     0023H     UNIT         ?DT?EFM8LB1_UART_STDIO
+            DATA    0045H     0004H     UNIT         ?DT?INTERRUPTS
+            DATA    0049H     0003H     UNIT         ?DT?_FLASHCHECKSUM?EFM8LB1_UART_STDIO
+            DATA    004CH     0003H     UNIT         ?DT?_CALCCHECKSUM?EFM8LB1_UART_STDIO
+            IDATA   004FH     0001H     UNIT         ?STACK
 
             * * * * * * *   C O D E   M E M O R Y   * * * * * * *
             CODE    0000H     0003H     ABSOLUTE     
@@ -54,39 +54,39 @@ LINK MAP OF MODULE:  .\Objects\EFM8LB10F16_uart0_STDIO (?C_STARTUP)
             CODE    000AH     0001H     UNIT         ?PR?CIP51_0_ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
             CODE    000BH     0003H     ABSOLUTE     
             CODE    000EH     035CH     UNIT         ?PR?PRINTF?PRINTF
-            CODE    036AH     01A6H     UNIT         ?C?LIB_CODE
-            CODE    0510H     011FH     UNIT         ?PR?FRAMEDATAACQUISITION?EFM8LB1_UART_STDIO
-            CODE    062FH     008CH     UNIT         ?C_C51STARTUP
-            CODE    06BBH     007AH     UNIT         ?PR?READLOGICCONTROL?EFM8LB1_UART_STDIO
-            CODE    0735H     0070H     UNIT         ?PR?SAVELOGICCONTROL?EFM8LB1_UART_STDIO
-BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  13:35:25  PAGE 2
+            CODE    036AH     01B7H     UNIT         ?C?LIB_CODE
+            CODE    0521H     013CH     UNIT         ?PR?FRAMEDATAACQUISITION?EFM8LB1_UART_STDIO
+            CODE    065DH     011CH     UNIT         ?CO?EFM8LB1_UART_STDIO
+            CODE    0779H     0092H     UNIT         ?PR?MAIN?EFM8LB1_UART_STDIO
+            CODE    080BH     008CH     UNIT         ?C_C51STARTUP
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  14:07:49  PAGE 2
 
 
-            CODE    07A5H     0057H     UNIT         ?PR?MAIN?EFM8LB1_UART_STDIO
-            CODE    07FCH     0040H     UNIT         ?PR?_VERIFYCHECKSUM?EFM8LB1_UART_STDIO
-            CODE    083CH     003EH     UNIT         ?CO?EFM8LB1_UART_STDIO
-            CODE    087AH     0035H     UNIT         ?PR?TIMER0_ISR?INTERRUPTS
-            CODE    08AFH     002EH     UNIT         ?C_INITSEG
-            CODE    08DDH     0029H     UNIT         ?PR?_CALCCHECKSUM?EFM8LB1_UART_STDIO
-            CODE    0906H     0029H     UNIT         ?PR?_FLASH_BYTEWRITE?EFM8LB1_FLASHPRIMITIVES
-            CODE    092FH     0029H     UNIT         ?PR?_FLASH_PAGEERASE?EFM8LB1_FLASHPRIMITIVES
-            CODE    0958H     0028H     UNIT         ?PR?ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
-            CODE    0980H     0027H     UNIT         ?PR?PUTCHAR?PUTCHAR
-            CODE    09A7H     0022H     UNIT         ?PR?_FLASHCHECKSUM?EFM8LB1_UART_STDIO
-            CODE    09C9H     0016H     UNIT         ?PR?RELAY_A?EFM8LB1_UART_STDIO
-            CODE    09DFH     0016H     UNIT         ?PR?RELAY_B?EFM8LB1_UART_STDIO
-            CODE    09F5H     0013H     UNIT         ?PR?TIMER01_0_ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
-            CODE    0A08H     0013H     UNIT         ?PR?TIMER_SETUP_0_ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
-            CODE    0A1BH     0012H     UNIT         ?PR?PORTS_0_ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
-            CODE    0A2DH     0012H     UNIT         ?PR?PORTS_1_ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
-            CODE    0A3FH     0012H     UNIT         ?PR?_FLASH_BYTEREAD?EFM8LB1_FLASHPRIMITIVES
-            CODE    0A51H     000CH     UNIT         ?PR?UART_GETCHAR?EFM8LB1_UART_STDIO
-            CODE    0A5DH     000AH     UNIT         ?PR?WDT_0_ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
-            CODE    0A67H     000AH     UNIT         ?PR?PORTS_2_ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
-            CODE    0A71H     000AH     UNIT         ?PR?PBCFG_0_ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
-            CODE    0A7BH     0005H     UNIT         ?PR?_DELAY_MS?EFM8LB1_UART_STDIO
-            CODE    0A80H     0004H     UNIT         ?PR?UART_0_ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
-            CODE    0A84H     0004H     UNIT         ?PR?INTERRUPT_0_ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
+            CODE    0897H     005DH     UNIT         ?PR?SAVELOGICCONTROL?EFM8LB1_UART_STDIO
+            CODE    08F4H     0058H     UNIT         ?PR?READLOGICCONTROL?EFM8LB1_UART_STDIO
+            CODE    094CH     004DH     UNIT         ?PR?_DELAY_MS?EFM8LB1_UART_STDIO
+            CODE    0999H     0040H     UNIT         ?PR?_VERIFYCHECKSUM?EFM8LB1_UART_STDIO
+            CODE    09D9H     0035H     UNIT         ?PR?TIMER0_ISR?INTERRUPTS
+            CODE    0A0EH     002FH     UNIT         ?C_INITSEG
+            CODE    0A3DH     0029H     UNIT         ?PR?_CALCCHECKSUM?EFM8LB1_UART_STDIO
+            CODE    0A66H     0029H     UNIT         ?PR?_FLASH_BYTEWRITE?EFM8LB1_FLASHPRIMITIVES
+            CODE    0A8FH     0029H     UNIT         ?PR?_FLASH_PAGEERASE?EFM8LB1_FLASHPRIMITIVES
+            CODE    0AB8H     0028H     UNIT         ?PR?ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
+            CODE    0AE0H     0027H     UNIT         ?PR?PUTCHAR?PUTCHAR
+            CODE    0B07H     0022H     UNIT         ?PR?_FLASHCHECKSUM?EFM8LB1_UART_STDIO
+            CODE    0B29H     0013H     UNIT         ?PR?TIMER01_0_ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
+            CODE    0B3CH     0013H     UNIT         ?PR?TIMER_SETUP_0_ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
+            CODE    0B4FH     0012H     UNIT         ?PR?PORTS_0_ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
+            CODE    0B61H     0012H     UNIT         ?PR?PORTS_1_ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
+            CODE    0B73H     0012H     UNIT         ?PR?_FLASH_BYTEREAD?EFM8LB1_FLASHPRIMITIVES
+            CODE    0B85H     0011H     UNIT         ?PR?RELAY_A?EFM8LB1_UART_STDIO
+            CODE    0B96H     0011H     UNIT         ?PR?RELAY_B?EFM8LB1_UART_STDIO
+            CODE    0BA7H     000CH     UNIT         ?PR?UART_GETCHAR?EFM8LB1_UART_STDIO
+            CODE    0BB3H     000AH     UNIT         ?PR?WDT_0_ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
+            CODE    0BBDH     000AH     UNIT         ?PR?PORTS_2_ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
+            CODE    0BC7H     000AH     UNIT         ?PR?PBCFG_0_ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
+            CODE    0BD1H     0004H     UNIT         ?PR?UART_0_ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
+            CODE    0BD5H     0004H     UNIT         ?PR?INTERRUPT_0_ENTER_DEFAULTMODE_FROM_RESET?INITDEVICE
 
 
 
@@ -100,14 +100,17 @@ SEGMENT                                             BIT_GROUP          DATA_GROU
   +--> ?PR?MAIN?EFM8LB1_UART_STDIO
   +--> ?C_INITSEG
 
-?PR?MAIN?EFM8LB1_UART_STDIO                      -----    -----      -----    -----
+?PR?MAIN?EFM8LB1_UART_STDIO                      -----    -----      0008H    0001H
   +--> ?PR?ENTER_DEFAULTMODE_FROM_RESET?INIT...
+  +--> ?PR?READLOGICCONTROL?EFM8LB1_UART_STDIO
+  +--> ?CO?EFM8LB1_UART_STDIO
+  +--> ?PR?PRINTF?PRINTF
   +--> ?PR?RELAY_A?EFM8LB1_UART_STDIO
   +--> ?PR?RELAY_B?EFM8LB1_UART_STDIO
   +--> ?PR?FRAMEDATAACQUISITION?EFM8LB1_UART...
   +--> ?PR?SAVELOGICCONTROL?EFM8LB1_UART_STDIO
 
-?PR?ENTER_DEFAULTMODE_FROM_RESET?INIT...         -----    -----      0008H    0001H
+?PR?ENTER_DEFAULTMODE_FROM_RESET?INIT...         -----    -----      0009H    0001H
   +--> ?PR?WDT_0_ENTER_DEFAULTMODE_FROM_RESE...
   +--> ?PR?PORTS_0_ENTER_DEFAULTMODE_FROM_RE...
   +--> ?PR?PORTS_1_ENTER_DEFAULTMODE_FROM_RE...
@@ -116,36 +119,38 @@ SEGMENT                                             BIT_GROUP          DATA_GROU
   +--> ?PR?CIP51_0_ENTER_DEFAULTMODE_FROM_RE...
   +--> ?PR?CLOCK_0_ENTER_DEFAULTMODE_FROM_RE...
   +--> ?PR?TIMER01_0_ENTER_DEFAULTMODE_FROM_...
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  14:07:49  PAGE 3
+
+
   +--> ?PR?TIMER_SETUP_0_ENTER_DEFAULTMODE_F...
   +--> ?PR?INTERRUPT_0_ENTER_DEFAULTMODE_FRO...
   +--> ?PR?UART_0_ENTER_DEFAULTMODE_FROM_RES...
-BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  13:35:25  PAGE 3
 
+?PR?READLOGICCONTROL?EFM8LB1_UART_STDIO          -----    -----      0009H    000CH
+  +--> ?PR?_FLASH_BYTEREAD?EFM8LB1_FLASHPRIM...
 
+?PR?_FLASH_BYTEREAD?EFM8LB1_FLASHPRIM...         0020H.0  0000H.1    -----    -----
+
+?PR?PRINTF?PRINTF                                0020H.0  0001H.1    000BH    0014H
+  +--> ?PR?PUTCHAR?PUTCHAR
 
 ?PR?RELAY_A?EFM8LB1_UART_STDIO                   -----    -----      -----    -----
   +--> ?PR?_DELAY_MS?EFM8LB1_UART_STDIO
 
-?PR?_DELAY_MS?EFM8LB1_UART_STDIO                 -----    -----      0008H    0002H
+?PR?_DELAY_MS?EFM8LB1_UART_STDIO                 -----    -----      0009H    0002H
 
 ?PR?RELAY_B?EFM8LB1_UART_STDIO                   -----    -----      -----    -----
   +--> ?PR?_DELAY_MS?EFM8LB1_UART_STDIO
 
-?PR?FRAMEDATAACQUISITION?EFM8LB1_UART...         -----    -----      0008H    0002H
+?PR?FRAMEDATAACQUISITION?EFM8LB1_UART...         -----    -----      0009H    0002H
   +--> ?PR?UART_GETCHAR?EFM8LB1_UART_STDIO
   +--> ?CO?EFM8LB1_UART_STDIO
   +--> ?PR?PRINTF?PRINTF
   +--> ?PR?_VERIFYCHECKSUM?EFM8LB1_UART_STDIO
 
-?PR?PRINTF?PRINTF                                0020H.0  0001H.1    000AH    0014H
-  +--> ?PR?PUTCHAR?PUTCHAR
-
-?PR?SAVELOGICCONTROL?EFM8LB1_UART_STDIO          -----    -----      0008H    000DH
-  +--> ?PR?_FLASHCHECKSUM?EFM8LB1_UART_STDIO
+?PR?SAVELOGICCONTROL?EFM8LB1_UART_STDIO          -----    -----      0009H    000BH
   +--> ?PR?_FLASH_PAGEERASE?EFM8LB1_FLASHPRI...
   +--> ?PR?_FLASH_BYTEWRITE?EFM8LB1_FLASHPRI...
-
-?PR?_FLASHCHECKSUM?EFM8LB1_UART_STDIO            -----    -----      0015H    0003H
 
 ?PR?_FLASH_PAGEERASE?EFM8LB1_FLASHPRI...         0020H.0  0000H.1    -----    -----
 
@@ -159,8 +164,8 @@ SYMBOL TABLE OF MODULE:  .\Objects\EFM8LB10F16_uart0_STDIO (?C_STARTUP)
   ----------------------------------
 
   -------         MODULE        ?C_STARTUP
-  C:062FH         SEGMENT       ?C_C51STARTUP
-  I:0058H         SEGMENT       ?STACK
+  C:080BH         SEGMENT       ?C_C51STARTUP
+  I:004FH         SEGMENT       ?STACK
   C:0000H         PUBLIC        ?C_STARTUP
   D:00E0H         SYMBOL        ACC
   D:00F0H         SYMBOL        B
@@ -169,465 +174,471 @@ SYMBOL TABLE OF MODULE:  .\Objects\EFM8LB10F16_uart0_STDIO (?C_STARTUP)
   N:0000H         SYMBOL        IBPSTACK
   N:0100H         SYMBOL        IBPSTACKTOP
   N:0080H         SYMBOL        IDATALEN
-  C:0632H         SYMBOL        IDATALOOP
+  C:080EH         SYMBOL        IDATALOOP
   N:0000H         SYMBOL        PBPSTACK
   N:0100H         SYMBOL        PBPSTACKTOP
   N:0000H         SYMBOL        PDATALEN
   N:0000H         SYMBOL        PDATASTART
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  14:07:49  PAGE 4
+
+
   N:0000H         SYMBOL        PPAGE
   N:0000H         SYMBOL        PPAGEENABLE
   D:00A0H         SYMBOL        PPAGE_SFR
   D:0081H         SYMBOL        SP
-  C:062FH         SYMBOL        STARTUP1
-BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  13:35:25  PAGE 4
-
-
+  C:080BH         SYMBOL        STARTUP1
   N:0000H         SYMBOL        XBPSTACK
   N:0000H         SYMBOL        XBPSTACKTOP
   N:0000H         SYMBOL        XDATALEN
   N:0000H         SYMBOL        XDATASTART
   C:0000H         LINE#         126
-  C:062FH         LINE#         138
-  C:0631H         LINE#         139
-  C:0632H         LINE#         140
-  C:0633H         LINE#         141
-  C:0635H         LINE#         190
-  C:0638H         LINE#         201
+  C:080BH         LINE#         138
+  C:080DH         LINE#         139
+  C:080EH         LINE#         140
+  C:080FH         LINE#         141
+  C:0811H         LINE#         190
+  C:0814H         LINE#         201
   -------         ENDMOD        ?C_STARTUP
 
   -------         MODULE        EFM8LB1_UART_STDIO
   C:0000H         SYMBOL        _ICE_DUMMY_
-  C:0A51H         PUBLIC        uart_getchar
+  C:0BA7H         PUBLIC        uart_getchar
   D:00A0H         PUBLIC        P2
-  C:0735H         PUBLIC        saveLogicControl
+  C:0897H         PUBLIC        saveLogicControl
   D:00A7H         PUBLIC        SFRPAGE
   D:00A6H         PUBLIC        P2MDOUT
   D:0022H         PUBLIC        logic_state
   D:0023H         PUBLIC        start_counter
   C:0009H         PUBLIC        SiLabs_Startup
-  C:09C9H         PUBLIC        RELAY_A
-  C:09DFH         PUBLIC        RELAY_B
-  C:07A5H         PUBLIC        main
+  C:0B85H         PUBLIC        RELAY_A
+  C:0B96H         PUBLIC        RELAY_B
+  C:0779H         PUBLIC        main
   D:00F3H         PUBLIC        P2MDIN
-  C:08DDH         PUBLIC        _CalcChecksum
-  C:07FCH         PUBLIC        _VerifyChecksum
+  C:0A3DH         PUBLIC        _CalcChecksum
+  C:0999H         PUBLIC        _VerifyChecksum
   D:00CCH         PUBLIC        P2SKIP
-  C:09A7H         SYMBOL        _flashChecksum
-  C:0A7BH         PUBLIC        _delay_ms
+  C:0B07H         SYMBOL        _flashChecksum
+  C:0953H         PUBLIC        _delay_ms
   D:0099H         PUBLIC        SBUF0
   D:0098H         PUBLIC        SCON0
   D:0027H         PUBLIC        uart_rx_buffer
   B:00A8H.7       PUBLIC        IE_EA
-  C:06BBH         PUBLIC        readLogicControl
+  C:08F4H         PUBLIC        readLogicControl
   D:0041H         PUBLIC        logic_control
-  C:0510H         PUBLIC        FrameDataAcquisition
+  C:0521H         PUBLIC        FrameDataAcquisition
+  -------         PROC          L?0075
+  -------         ENDPROC       L?0075
   -------         PROC          _DELAY_MS
-  D:0008H         SYMBOL        ms
-  C:0A7BH         LINE#         17
-  C:0A7FH         LINE#         18
-  C:0A7FH         LINE#         26
+  D:0009H         SYMBOL        ms
+  C:0953H         LINE#         17
+  C:0957H         LINE#         18
+  C:0957H         LINE#         19
+  C:0967H         LINE#         21
+  C:0998H         LINE#         22
+  C:0998H         LINE#         24
+  C:0998H         LINE#         26
   -------         ENDPROC       _DELAY_MS
   -------         PROC          _FLASHCHECKSUM
-  D:0015H         SYMBOL        buf
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  14:07:49  PAGE 5
+
+
+  D:0049H         SYMBOL        buf
   D:0005H         SYMBOL        len
   -------         DO            
   D:0007H         SYMBOL        sum
   D:0006H         SYMBOL        i
   -------         ENDDO         
-  C:09A7H         LINE#         74
-  C:09ADH         LINE#         75
-  C:09ADH         LINE#         76
-  C:09AFH         LINE#         78
-  C:09B5H         LINE#         79
-BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  13:35:25  PAGE 5
-
-
-  C:09B5H         LINE#         80
-  C:09C5H         LINE#         81
-  C:09C8H         LINE#         82
-  C:09C8H         LINE#         83
+  C:0B07H         LINE#         72
+  C:0B0DH         LINE#         73
+  C:0B0DH         LINE#         74
+  C:0B0FH         LINE#         76
+  C:0B15H         LINE#         77
+  C:0B15H         LINE#         78
+  C:0B25H         LINE#         79
+  C:0B28H         LINE#         80
+  C:0B28H         LINE#         81
   -------         ENDPROC       _FLASHCHECKSUM
   -------         PROC          SAVELOGICCONTROL
   -------         DO            
-  D:0008H         SYMBOL        storage
-  D:000EH         SYMBOL        p
-  D:0011H         SYMBOL        i
-  D:0013H         SYMBOL        addr
+  D:0009H         SYMBOL        storage
+  D:000DH         SYMBOL        p
+  D:0010H         SYMBOL        i
+  D:0012H         SYMBOL        addr
   -------         ENDDO         
-  C:0735H         LINE#         85
-  C:0735H         LINE#         86
-  C:0735H         LINE#         90
-  C:073BH         LINE#         92
-  C:0741H         LINE#         93
-  C:0754H         LINE#         94
-  C:0761H         LINE#         96
-  C:0768H         LINE#         98
-  C:0771H         LINE#         99
-  C:0776H         LINE#         100
-  C:0776H         LINE#         101
-  C:0793H         LINE#         102
-  C:07A4H         LINE#         103
+  C:0897H         LINE#         83
+  C:0897H         LINE#         84
+  C:0897H         LINE#         88
+  C:089DH         LINE#         90
+  C:08B0H         LINE#         92
+  C:08B7H         LINE#         94
+  C:08C0H         LINE#         95
+  C:08C5H         LINE#         96
+  C:08C5H         LINE#         97
+  C:08E2H         LINE#         98
+  C:08F3H         LINE#         99
   -------         ENDPROC       SAVELOGICCONTROL
   -------         PROC          READLOGICCONTROL
   -------         DO            
-  D:0044H         SYMBOL        storage
-  D:004AH         SYMBOL        p
-  D:004DH         SYMBOL        i
-  D:0007H         SYMBOL        calc_chk
-  D:004FH         SYMBOL        addr
+  D:0009H         SYMBOL        storage
+  D:000DH         SYMBOL        p
+  D:0010H         SYMBOL        i
+  D:0012H         SYMBOL        calc_chk
+  D:0013H         SYMBOL        addr
   -------         ENDDO         
-  C:06BBH         LINE#         105
-  C:06BBH         LINE#         106
-  C:06BBH         LINE#         111
-  C:06C1H         LINE#         113
-  C:06CAH         LINE#         114
-  C:06CFH         LINE#         115
-  C:06CFH         LINE#         116
-  C:06ECH         LINE#         117
-  C:06FDH         LINE#         119
-  C:0709H         LINE#         120
-  C:0709H         LINE#         121
-  C:070CH         LINE#         122
-  C:070CH         LINE#         124
-  C:0717H         LINE#         125
-  C:071CH         LINE#         126
-  C:071CH         LINE#         127
-  C:071FH         LINE#         128
-  C:071FH         LINE#         130
-  C:0732H         LINE#         131
-  C:0734H         LINE#         132
+  C:08F4H         LINE#         101
+  C:08F4H         LINE#         102
+  C:08F4H         LINE#         107
+  C:08FAH         LINE#         109
+  C:0903H         LINE#         110
+  C:0908H         LINE#         111
+  C:0908H         LINE#         112
+  C:0925H         LINE#         113
+  C:0936H         LINE#         115
+  C:0949H         LINE#         116
+  C:094BH         LINE#         117
   -------         ENDPROC       READLOGICCONTROL
   -------         PROC          RELAY_A
-  C:09C9H         LINE#         153
-BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  13:35:25  PAGE 6
+  C:0B85H         LINE#         138
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  14:07:49  PAGE 6
 
 
-  C:09C9H         LINE#         154
-  C:09C9H         LINE#         155
-  C:09CCH         LINE#         157
-  C:09D3H         LINE#         159
-  C:09D6H         LINE#         161
-  C:09DBH         LINE#         163
-  C:09DEH         LINE#         164
+  C:0B85H         LINE#         139
+  C:0B85H         LINE#         140
+  C:0B88H         LINE#         142
+  C:0B8FH         LINE#         144
+  C:0B8FH         LINE#         146
+  C:0B92H         LINE#         148
+  C:0B95H         LINE#         149
   -------         ENDPROC       RELAY_A
   -------         PROC          RELAY_B
-  C:09DFH         LINE#         167
-  C:09DFH         LINE#         168
-  C:09DFH         LINE#         169
-  C:09E2H         LINE#         171
-  C:09E9H         LINE#         173
-  C:09ECH         LINE#         175
-  C:09F1H         LINE#         177
-  C:09F4H         LINE#         178
+  C:0B96H         LINE#         152
+  C:0B96H         LINE#         153
+  C:0B96H         LINE#         154
+  C:0B99H         LINE#         156
+  C:0BA0H         LINE#         158
+  C:0BA0H         LINE#         160
+  C:0BA3H         LINE#         162
+  C:0BA6H         LINE#         163
   -------         ENDPROC       RELAY_B
   -------         PROC          SILABS_STARTUP
-  C:0009H         LINE#         199
-  C:0009H         LINE#         200
-  C:0009H         LINE#         201
+  C:0009H         LINE#         184
+  C:0009H         LINE#         185
+  C:0009H         LINE#         186
   -------         ENDPROC       SILABS_STARTUP
   -------         PROC          UART_GETCHAR
   -------         DO            
   D:0007H         SYMBOL        c1
   -------         ENDDO         
-  C:0A51H         LINE#         203
-  C:0A51H         LINE#         204
-  C:0A51H         LINE#         206
-  C:0A57H         LINE#         207
-  C:0A59H         LINE#         208
-  C:0A5CH         LINE#         209
-  C:0A5CH         LINE#         210
+  C:0BA7H         LINE#         188
+  C:0BA7H         LINE#         189
+  C:0BA7H         LINE#         191
+  C:0BADH         LINE#         192
+  C:0BAFH         LINE#         193
+  C:0BB2H         LINE#         194
+  C:0BB2H         LINE#         195
   -------         ENDPROC       UART_GETCHAR
   -------         PROC          _CALCCHECKSUM
   D:0007H         SYMBOL        type
   D:0005H         SYMBOL        len
-  D:0055H         SYMBOL        data_buf
+  D:004CH         SYMBOL        data_buf
   -------         DO            
   D:0006H         SYMBOL        sum
   D:0007H         SYMBOL        i
   -------         ENDDO         
-  C:08DDH         LINE#         246
-  C:08E3H         LINE#         247
-  C:08E3H         LINE#         248
-  C:08E4H         LINE#         251
-  C:08E5H         LINE#         252
-  C:08E7H         LINE#         253
-  C:08EEH         LINE#         254
-  C:08FEH         LINE#         255
-  C:0901H         LINE#         257
-  C:0905H         LINE#         258
+  C:0A3DH         LINE#         231
+  C:0A43H         LINE#         232
+  C:0A43H         LINE#         233
+  C:0A44H         LINE#         236
+  C:0A45H         LINE#         237
+  C:0A47H         LINE#         238
+  C:0A4EH         LINE#         239
+  C:0A5EH         LINE#         240
+  C:0A61H         LINE#         242
+  C:0A65H         LINE#         243
   -------         ENDPROC       _CALCCHECKSUM
   -------         PROC          _VERIFYCHECKSUM
   D:0001H         SYMBOL        buf
   -------         DO            
-BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  13:35:25  PAGE 7
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  14:07:49  PAGE 7
 
 
   D:0007H         SYMBOL        sum
   D:0006H         SYMBOL        i
   -------         ENDDO         
-  C:07FCH         LINE#         263
-  C:07FCH         LINE#         264
-  C:07FCH         LINE#         265
-  C:07FEH         LINE#         268
-  C:0806H         LINE#         269
-  C:080EH         LINE#         270
-  C:081CH         LINE#         271
-  C:082AH         LINE#         272
-  C:082DH         LINE#         273
-  C:0834H         LINE#         275
-  C:083BH         LINE#         276
+  C:0999H         LINE#         248
+  C:0999H         LINE#         249
+  C:0999H         LINE#         250
+  C:099BH         LINE#         253
+  C:09A3H         LINE#         254
+  C:09ABH         LINE#         255
+  C:09B9H         LINE#         256
+  C:09C7H         LINE#         257
+  C:09CAH         LINE#         258
+  C:09D1H         LINE#         260
+  C:09D8H         LINE#         261
   -------         ENDPROC       _VERIFYCHECKSUM
   -------         PROC          FRAMEDATAACQUISITION
   -------         DO            
-  D:0008H         SYMBOL        c
+  D:0009H         SYMBOL        c
   -------         DO            
-  D:0009H         SYMBOL        chk
+  D:000AH         SYMBOL        chk
   -------         ENDDO         
   -------         ENDDO         
-  C:0510H         LINE#         281
-  C:0510H         LINE#         282
-  C:0510H         LINE#         284
-  C:0515H         LINE#         286
-  C:051EH         LINE#         287
-  C:051EH         LINE#         288
-  C:0521H         LINE#         290
-  C:0523H         LINE#         291
-  C:0530H         LINE#         292
-  C:0530H         LINE#         293
-  C:0537H         LINE#         294
-  C:053BH         LINE#         295
-  C:053EH         LINE#         297
-  C:0548H         LINE#         299
-  C:054AH         LINE#         300
-  C:055BH         LINE#         301
-  C:055BH         LINE#         302
-  C:0565H         LINE#         305
-  C:056BH         LINE#         306
-  C:056BH         LINE#         307
-  C:056EH         LINE#         308
-  C:056EH         LINE#         310
-  C:0574H         LINE#         311
-  C:0574H         LINE#         312
-  C:0577H         LINE#         313
-  C:0582H         LINE#         314
-  C:0582H         LINE#         315
-  C:0585H         LINE#         316
-  C:0587H         LINE#         317
-  C:0590H         LINE#         318
-  C:0590H         LINE#         319
-  C:0590H         LINE#         321
-  C:05A2H         LINE#         322
-  C:05A2H         LINE#         324
-  C:05A5H         LINE#         326
-BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  13:35:25  PAGE 8
+  C:0521H         LINE#         266
+  C:0521H         LINE#         267
+  C:0521H         LINE#         269
+  C:0526H         LINE#         271
+  C:052FH         LINE#         272
+  C:052FH         LINE#         273
+  C:0532H         LINE#         275
+  C:0534H         LINE#         276
+  C:0541H         LINE#         277
+  C:0541H         LINE#         278
+  C:0548H         LINE#         279
+  C:054CH         LINE#         280
+  C:054FH         LINE#         282
+  C:0559H         LINE#         284
+  C:055BH         LINE#         285
+  C:056CH         LINE#         286
+  C:056CH         LINE#         287
+  C:0576H         LINE#         290
+  C:057CH         LINE#         291
+  C:057CH         LINE#         292
+  C:057FH         LINE#         293
+  C:057FH         LINE#         295
+  C:0585H         LINE#         296
+  C:0585H         LINE#         297
+  C:0588H         LINE#         298
+  C:0593H         LINE#         299
+  C:0593H         LINE#         300
+  C:0596H         LINE#         301
+  C:0598H         LINE#         302
+  C:05A1H         LINE#         303
+  C:05A1H         LINE#         304
+  C:05A1H         LINE#         306
+  C:05B3H         LINE#         307
+  C:05B3H         LINE#         309
+  C:05B6H         LINE#         311
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  14:07:49  PAGE 8
 
 
-  C:05A8H         LINE#         327
-  C:05A8H         LINE#         328
-  C:05A8H         LINE#         331
-  C:05B1H         LINE#         332
-  C:05B1H         LINE#         334
-  C:05BCH         LINE#         335
-  C:05BCH         LINE#         336
-  C:05C5H         LINE#         337
-  C:05C5H         LINE#         339
-  C:05CDH         LINE#         340
-  C:05D0H         LINE#         341
-  C:05D2H         LINE#         342
-  C:05D8H         LINE#         343
-  C:05D8H         LINE#         344
-  C:05DBH         LINE#         345
-  C:05DDH         LINE#         346
-  C:05E3H         LINE#         347
-  C:05E3H         LINE#         348
-  C:05E6H         LINE#         350
-  C:05E9H         LINE#         351
-  C:05EBH         LINE#         353
-  C:05EBH         LINE#         354
-  C:05EEH         LINE#         355
-  C:05F4H         LINE#         356
-  C:05F4H         LINE#         359
-  C:05F6H         LINE#         361
-  C:05F6H         LINE#         363
-  C:05F9H         LINE#         364
-  C:05FDH         LINE#         365
-  C:05FFH         LINE#         366
-  C:0601H         LINE#         367
-  C:0607H         LINE#         369
-  C:0621H         LINE#         376
-  C:0621H         LINE#         380
-  C:0624H         LINE#         381
-  C:0626H         LINE#         382
-  C:0628H         LINE#         383
-  C:062AH         LINE#         384
-  C:062CH         LINE#         385
-  C:062EH         LINE#         387
-  C:062EH         LINE#         392
+  C:05B9H         LINE#         312
+  C:05B9H         LINE#         313
+  C:05B9H         LINE#         316
+  C:05C2H         LINE#         317
+  C:05C2H         LINE#         319
+  C:05CDH         LINE#         320
+  C:05CDH         LINE#         321
+  C:05D3H         LINE#         322
+  C:05D3H         LINE#         324
+  C:05DBH         LINE#         325
+  C:05DEH         LINE#         326
+  C:05EAH         LINE#         327
+  C:05ECH         LINE#         328
+  C:05F2H         LINE#         329
+  C:05F2H         LINE#         330
+  C:05F5H         LINE#         331
+  C:05FBH         LINE#         332
+  C:05FDH         LINE#         333
+  C:0603H         LINE#         334
+  C:0603H         LINE#         335
+  C:0606H         LINE#         337
+  C:060BH         LINE#         338
+  C:0617H         LINE#         339
+  C:0619H         LINE#         341
+  C:0619H         LINE#         342
+  C:061CH         LINE#         343
+  C:0622H         LINE#         344
+  C:0622H         LINE#         347
+  C:0624H         LINE#         349
+  C:0624H         LINE#         351
+  C:0627H         LINE#         352
+  C:062BH         LINE#         353
+  C:062DH         LINE#         354
+  C:062FH         LINE#         355
+  C:0635H         LINE#         357
+  C:064FH         LINE#         364
+  C:064FH         LINE#         368
+  C:0652H         LINE#         369
+  C:0654H         LINE#         370
+  C:0656H         LINE#         371
+  C:0658H         LINE#         372
+  C:065AH         LINE#         373
+  C:065CH         LINE#         375
+  C:065CH         LINE#         380
   -------         ENDPROC       FRAMEDATAACQUISITION
   -------         PROC          MAIN
-  C:07A5H         LINE#         402
-  C:07A5H         LINE#         403
-  C:07A5H         LINE#         405
-  C:07A8H         LINE#         407
-  C:07AAH         LINE#         415
-  C:07ADH         LINE#         416
-  C:07B0H         LINE#         417
-  C:07B3H         LINE#         421
-  C:07B3H         LINE#         437
-  C:07B3H         LINE#         444
-  C:07B3H         LINE#         447
-  C:07B6H         LINE#         450
-  C:07B9H         LINE#         451
-  C:07BCH         LINE#         455
-BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  13:35:25  PAGE 9
+  -------         DO            
+  D:0008H         SYMBOL        ret
+  -------         ENDDO         
+  C:0779H         LINE#         390
+  C:0779H         LINE#         391
+  C:0779H         LINE#         393
+  C:077CH         LINE#         395
+  C:077EH         LINE#         403
+  C:0781H         LINE#         404
+  C:0784H         LINE#         405
+  C:0787H         LINE#         409
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  14:07:49  PAGE 9
 
 
-  C:07C0H         LINE#         456
-  C:07C0H         LINE#         457
-  C:07C3H         LINE#         458
-  C:07C5H         LINE#         460
-  C:07C5H         LINE#         461
-  C:07C8H         LINE#         462
-  C:07C8H         LINE#         464
-  C:07C8H         LINE#         471
-  C:07C8H         LINE#         472
-  C:07C8H         LINE#         473
-  C:07CBH         LINE#         477
-  C:07D8H         LINE#         478
-  C:07D8H         LINE#         479
-  C:07D8H         LINE#         482
-  C:07D8H         LINE#         484
-  C:07D8H         LINE#         488
-  C:07DBH         LINE#         489
-  C:07DBH         LINE#         490
-  C:07DDH         LINE#         491
-  C:07DDH         LINE#         498
-  C:07E0H         LINE#         499
-  C:07E2H         LINE#         500
-  C:07E2H         LINE#         503
-  C:07E6H         LINE#         504
-  C:07E6H         LINE#         505
-  C:07E9H         LINE#         506
-  C:07E9H         LINE#         508
-  C:07EBH         LINE#         509
-  C:07F1H         LINE#         510
-  C:07F1H         LINE#         511
-  C:07F4H         LINE#         512
-  C:07F7H         LINE#         514
-  C:07F7H         LINE#         516
-  C:07F7H         LINE#         518
-  C:07F7H         LINE#         519
-  C:07FAH         LINE#         520
+  C:0787H         LINE#         411
+  C:078CH         LINE#         414
+  C:0795H         LINE#         416
+  C:07AAH         LINE#         420
+  C:07AAH         LINE#         427
+  C:07AAH         LINE#         430
+  C:07ADH         LINE#         433
+  C:07B0H         LINE#         434
+  C:07B3H         LINE#         438
+  C:07B9H         LINE#         439
+  C:07B9H         LINE#         440
+  C:07BCH         LINE#         441
+  C:07BEH         LINE#         443
+  C:07BEH         LINE#         444
+  C:07C1H         LINE#         445
+  C:07C1H         LINE#         447
+  C:07C1H         LINE#         451
+  C:07C1H         LINE#         452
+  C:07C1H         LINE#         453
+  C:07C4H         LINE#         457
+  C:07D1H         LINE#         458
+  C:07D1H         LINE#         459
+  C:07D1H         LINE#         462
+  C:07D1H         LINE#         464
+  C:07D1H         LINE#         468
+  C:07D4H         LINE#         469
+  C:07D4H         LINE#         470
+  C:07D6H         LINE#         471
+  C:07D6H         LINE#         478
+  C:07D9H         LINE#         479
+  C:07DBH         LINE#         480
+  C:07DBH         LINE#         483
+  C:07E1H         LINE#         484
+  C:07E1H         LINE#         485
+  C:07E4H         LINE#         486
+  C:07E7H         LINE#         488
+  C:07EDH         LINE#         489
+  C:07EFH         LINE#         490
+  C:07F7H         LINE#         491
+  C:07F7H         LINE#         492
+  C:07FAH         LINE#         493
+  C:07FDH         LINE#         495
+  C:0806H         LINE#         496
+  C:0806H         LINE#         498
+  C:0806H         LINE#         500
+  C:0806H         LINE#         501
+  C:0809H         LINE#         502
   -------         ENDPROC       MAIN
   -------         ENDMOD        EFM8LB1_UART_STDIO
 
   -------         MODULE        INITDEVICE
   C:0000H         SYMBOL        _ICE_DUMMY_
-  C:0A80H         PUBLIC        UART_0_enter_DefaultMode_from_RESET
+  C:0BD1H         PUBLIC        UART_0_enter_DefaultMode_from_RESET
   D:0080H         PUBLIC        P0
   D:0090H         PUBLIC        P1
   D:0097H         PUBLIC        WDTCN
   C:000AH         PUBLIC        CIP51_0_enter_DefaultMode_from_RESET
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  14:07:49  PAGE 10
+
+
   D:00A7H         PUBLIC        SFRPAGE
   D:00A4H         PUBLIC        P0MDOUT
   D:00A5H         PUBLIC        P1MDOUT
   D:00A6H         PUBLIC        P2MDOUT
   D:00A8H         PUBLIC        IE
-  C:0A84H         PUBLIC        INTERRUPT_0_enter_DefaultMode_from_RESET
+  C:0BD5H         PUBLIC        INTERRUPT_0_enter_DefaultMode_from_RESET
   D:00E1H         PUBLIC        XBR0
   D:00E3H         PUBLIC        XBR2
   D:008EH         PUBLIC        CKCON0
-  C:0A71H         PUBLIC        PBCFG_0_enter_DefaultMode_from_RESET
-  C:09F5H         PUBLIC        TIMER01_0_enter_DefaultMode_from_RESET
-BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  13:35:25  PAGE 10
-
-
+  C:0BC7H         PUBLIC        PBCFG_0_enter_DefaultMode_from_RESET
+  C:0B29H         PUBLIC        TIMER01_0_enter_DefaultMode_from_RESET
   D:00F1H         PUBLIC        P0MDIN
   D:00F2H         PUBLIC        P1MDIN
   D:00FEH         PUBLIC        P0MASK
   C:0003H         PUBLIC        CLOCK_0_enter_DefaultMode_from_RESET
   D:00EEH         PUBLIC        P1MASK
-  C:0A5DH         PUBLIC        WDT_0_enter_DefaultMode_from_RESET
+  C:0BB3H         PUBLIC        WDT_0_enter_DefaultMode_from_RESET
   D:0089H         PUBLIC        TMOD
   D:0088H         PUBLIC        TCON
-  C:0A08H         PUBLIC        TIMER_SETUP_0_enter_DefaultMode_from_RESET
+  C:0B3CH         PUBLIC        TIMER_SETUP_0_enter_DefaultMode_from_RESET
   D:00D4H         PUBLIC        P0SKIP
   D:00D5H         PUBLIC        P1SKIP
   D:00CCH         PUBLIC        P2SKIP
   D:00A9H         PUBLIC        CLKSEL
   D:008CH         PUBLIC        TH0
   D:008DH         PUBLIC        TH1
-  C:0958H         PUBLIC        enter_DefaultMode_from_RESET
+  C:0AB8H         PUBLIC        enter_DefaultMode_from_RESET
   D:008AH         PUBLIC        TL0
-  C:0A1BH         PUBLIC        PORTS_0_enter_DefaultMode_from_RESET
-  C:0A2DH         PUBLIC        PORTS_1_enter_DefaultMode_from_RESET
-  C:0A67H         PUBLIC        PORTS_2_enter_DefaultMode_from_RESET
+  C:0B4FH         PUBLIC        PORTS_0_enter_DefaultMode_from_RESET
+  C:0B61H         PUBLIC        PORTS_1_enter_DefaultMode_from_RESET
+  C:0BBDH         PUBLIC        PORTS_2_enter_DefaultMode_from_RESET
   D:00FDH         PUBLIC        P0MAT
   D:0098H         PUBLIC        SCON0
   D:00EDH         PUBLIC        P1MAT
   -------         PROC          ENTER_DEFAULTMODE_FROM_RESET
   -------         DO            
-  D:0008H         SYMBOL        SFRPAGE_save
+  D:0009H         SYMBOL        SFRPAGE_save
   -------         ENDDO         
-  C:0958H         LINE#         22
-  C:0958H         LINE#         25
-  C:095BH         LINE#         26
-  C:095EH         LINE#         27
-  C:0961H         LINE#         28
-  C:0964H         LINE#         29
-  C:0967H         LINE#         30
-  C:096AH         LINE#         31
-  C:096DH         LINE#         32
-  C:0970H         LINE#         33
-  C:0973H         LINE#         34
-  C:0976H         LINE#         35
-  C:0979H         LINE#         36
-  C:097CH         LINE#         39
-  C:097FH         LINE#         42
+  C:0AB8H         LINE#         22
+  C:0AB8H         LINE#         25
+  C:0ABBH         LINE#         26
+  C:0ABEH         LINE#         27
+  C:0AC1H         LINE#         28
+  C:0AC4H         LINE#         29
+  C:0AC7H         LINE#         30
+  C:0ACAH         LINE#         31
+  C:0ACDH         LINE#         32
+  C:0AD0H         LINE#         33
+  C:0AD3H         LINE#         34
+  C:0AD6H         LINE#         35
+  C:0AD9H         LINE#         36
+  C:0ADCH         LINE#         39
+  C:0ADFH         LINE#         42
   -------         ENDPROC       ENTER_DEFAULTMODE_FROM_RESET
   -------         PROC          WDT_0_ENTER_DEFAULTMODE_FROM_RESET
-  C:0A5DH         LINE#         47
-  C:0A5DH         LINE#         49
-  C:0A60H         LINE#         51
-  C:0A63H         LINE#         52
-  C:0A66H         LINE#         55
+  C:0BB3H         LINE#         47
+  C:0BB3H         LINE#         49
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  14:07:49  PAGE 11
+
+
+  C:0BB6H         LINE#         51
+  C:0BB9H         LINE#         52
+  C:0BBCH         LINE#         55
   -------         ENDPROC       WDT_0_ENTER_DEFAULTMODE_FROM_RESET
   -------         PROC          PORTS_0_ENTER_DEFAULTMODE_FROM_RESET
-  C:0A1BH         LINE#         60
-  C:0A1BH         LINE#         80
-  C:0A1EH         LINE#         102
-  C:0A21H         LINE#         127
-  C:0A24H         LINE#         151
-  C:0A27H         LINE#         176
-BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  13:35:25  PAGE 11
-
-
-  C:0A29H         LINE#         200
-  C:0A2CH         LINE#         204
+  C:0B4FH         LINE#         60
+  C:0B4FH         LINE#         80
+  C:0B52H         LINE#         102
+  C:0B55H         LINE#         127
+  C:0B58H         LINE#         151
+  C:0B5BH         LINE#         176
+  C:0B5DH         LINE#         200
+  C:0B60H         LINE#         204
   -------         ENDPROC       PORTS_0_ENTER_DEFAULTMODE_FROM_RESET
   -------         PROC          PORTS_1_ENTER_DEFAULTMODE_FROM_RESET
-  C:0A2DH         LINE#         209
-  C:0A2DH         LINE#         229
-  C:0A30H         LINE#         252
-  C:0A33H         LINE#         277
-  C:0A36H         LINE#         301
-  C:0A39H         LINE#         326
-  C:0A3BH         LINE#         350
-  C:0A3EH         LINE#         354
+  C:0B61H         LINE#         209
+  C:0B61H         LINE#         229
+  C:0B64H         LINE#         252
+  C:0B67H         LINE#         277
+  C:0B6AH         LINE#         301
+  C:0B6DH         LINE#         326
+  C:0B6FH         LINE#         350
+  C:0B72H         LINE#         354
   -------         ENDPROC       PORTS_1_ENTER_DEFAULTMODE_FROM_RESET
   -------         PROC          PORTS_2_ENTER_DEFAULTMODE_FROM_RESET
-  C:0A67H         LINE#         359
-  C:0A67H         LINE#         378
-  C:0A6AH         LINE#         398
-  C:0A6DH         LINE#         399
-  C:0A70H         LINE#         409
+  C:0BBDH         LINE#         359
+  C:0BBDH         LINE#         378
+  C:0BC0H         LINE#         398
+  C:0BC3H         LINE#         399
+  C:0BC6H         LINE#         409
   -------         ENDPROC       PORTS_2_ENTER_DEFAULTMODE_FROM_RESET
   -------         PROC          PBCFG_0_ENTER_DEFAULTMODE_FROM_RESET
-  C:0A71H         LINE#         414
-  C:0A71H         LINE#         428
-  C:0A74H         LINE#         429
-  C:0A77H         LINE#         455
-  C:0A7AH         LINE#         463
+  C:0BC7H         LINE#         414
+  C:0BC7H         LINE#         428
+  C:0BCAH         LINE#         429
+  C:0BCDH         LINE#         455
+  C:0BD0H         LINE#         463
   -------         ENDPROC       PBCFG_0_ENTER_DEFAULTMODE_FROM_RESET
   -------         PROC          CIP51_0_ENTER_DEFAULTMODE_FROM_RESET
   C:000AH         LINE#         468
@@ -644,46 +655,46 @@ SYMBOL TABLE OF MODULE:  .\Objects\EFM8LB10F16_uart0_STDIO (?C_STARTUP)
   -------         DO            
   D:0007H         SYMBOL        TCON_save
   -------         ENDDO         
-  C:09F5H         LINE#         503
-  C:09F5H         LINE#         507
-  C:09F7H         LINE#         509
-  C:09FAH         LINE#         523
-  C:09FDH         LINE#         531
-  C:0A07H         LINE#         535
+  C:0B29H         LINE#         503
+  C:0B29H         LINE#         507
+  C:0B2BH         LINE#         509
+  C:0B2EH         LINE#         523
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  14:07:49  PAGE 12
+
+
+  C:0B31H         LINE#         531
+  C:0B3BH         LINE#         535
   -------         ENDPROC       TIMER01_0_ENTER_DEFAULTMODE_FROM_RESET
   -------         PROC          TIMER_SETUP_0_ENTER_DEFAULTMODE_FROM_RESET
-  C:0A08H         LINE#         540
-  C:0A08H         LINE#         556
-  C:0A0BH         LINE#         579
-  C:0A0EH         LINE#         589
-  C:0A11H         LINE#         590
-  C:0A14H         LINE#         593
-  C:0A17H         LINE#         594
-BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  13:35:25  PAGE 12
-
-
-  C:0A1AH         LINE#         597
+  C:0B3CH         LINE#         540
+  C:0B3CH         LINE#         556
+  C:0B3FH         LINE#         579
+  C:0B42H         LINE#         589
+  C:0B45H         LINE#         590
+  C:0B48H         LINE#         593
+  C:0B4BH         LINE#         594
+  C:0B4EH         LINE#         597
   -------         ENDPROC       TIMER_SETUP_0_ENTER_DEFAULTMODE_FROM_RESET
   -------         PROC          UART_0_ENTER_DEFAULTMODE_FROM_RESET
-  C:0A80H         LINE#         602
-  C:0A80H         LINE#         607
-  C:0A83H         LINE#         610
+  C:0BD1H         LINE#         602
+  C:0BD1H         LINE#         607
+  C:0BD4H         LINE#         610
   -------         ENDPROC       UART_0_ENTER_DEFAULTMODE_FROM_RESET
   -------         PROC          INTERRUPT_0_ENTER_DEFAULTMODE_FROM_RESET
-  C:0A84H         LINE#         615
-  C:0A84H         LINE#         650
-  C:0A87H         LINE#         661
+  C:0BD5H         LINE#         615
+  C:0BD5H         LINE#         650
+  C:0BD8H         LINE#         661
   -------         ENDPROC       INTERRUPT_0_ENTER_DEFAULTMODE_FROM_RESET
   -------         ENDMOD        INITDEVICE
 
   -------         MODULE        INTERRUPTS
   C:0000H         SYMBOL        _ICE_DUMMY_
-  C:087AH         PUBLIC        TIMER0_ISR
-  D:0051H         PUBLIC        counter
+  C:09D9H         PUBLIC        TIMER0_ISR
+  D:0045H         PUBLIC        counter
   -------         PROC          TIMER0_ISR
-  C:087AH         LINE#         22
-  C:0889H         LINE#         24
-  C:08A2H         LINE#         25
+  C:09D9H         LINE#         22
+  C:09E8H         LINE#         25
+  C:0A01H         LINE#         26
   -------         ENDPROC       TIMER0_ISR
   -------         ENDMOD        INTERRUPTS
 
@@ -691,11 +702,11 @@ SYMBOL TABLE OF MODULE:  .\Objects\EFM8LB10F16_uart0_STDIO (?C_STARTUP)
   C:0000H         SYMBOL        _ICE_DUMMY_
   D:008FH         PUBLIC        PSCTL
   D:00FFH         PUBLIC        VDM0CN
-  C:092FH         PUBLIC        _FLASH_PageErase
+  C:0A8FH         PUBLIC        _FLASH_PageErase
   D:00EFH         PUBLIC        RSTSRC
-  C:0A3FH         PUBLIC        _FLASH_ByteRead
+  C:0B73H         PUBLIC        _FLASH_ByteRead
   B:00A8H.7       PUBLIC        IE_EA
-  C:0906H         PUBLIC        _FLASH_ByteWrite
+  C:0A66H         PUBLIC        _FLASH_ByteWrite
   D:00B7H         PUBLIC        FLKEY
   -------         PROC          _FLASH_BYTEWRITE
   D:0006H         SYMBOL        addr
@@ -704,42 +715,42 @@ SYMBOL TABLE OF MODULE:  .\Objects\EFM8LB10F16_uart0_STDIO (?C_STARTUP)
   B:0020H.0       SYMBOL        EA_SAVE
   D:0082H         SYMBOL        pwrite
   -------         ENDDO         
-  C:0906H         LINE#         41
-  C:0906H         LINE#         42
-  C:0906H         LINE#         43
-  C:090AH         LINE#         46
-  C:090CH         LINE#         48
-  C:090FH         LINE#         50
-  C:0912H         LINE#         52
-  C:0916H         LINE#         54
-  C:0919H         LINE#         55
-  C:091CH         LINE#         56
-  C:091FH         LINE#         58
-  C:0922H         LINE#         60
-  C:0925H         LINE#         61
-  C:0927H         LINE#         63
-  C:092AH         LINE#         65
-BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  13:35:25  PAGE 13
+  C:0A66H         LINE#         41
+  C:0A66H         LINE#         42
+  C:0A66H         LINE#         43
+  C:0A6AH         LINE#         46
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  14:07:49  PAGE 13
 
 
-  C:092EH         LINE#         66
+  C:0A6CH         LINE#         48
+  C:0A6FH         LINE#         50
+  C:0A72H         LINE#         52
+  C:0A76H         LINE#         54
+  C:0A79H         LINE#         55
+  C:0A7CH         LINE#         56
+  C:0A7FH         LINE#         58
+  C:0A82H         LINE#         60
+  C:0A85H         LINE#         61
+  C:0A87H         LINE#         63
+  C:0A8AH         LINE#         65
+  C:0A8EH         LINE#         66
   -------         ENDPROC       _FLASH_BYTEWRITE
   -------         PROC          _FLASH_BYTEREAD
   D:0006H         SYMBOL        addr
   -------         DO            
-  B:0021H.1       SYMBOL        EA_SAVE
+  B:0020H.0       SYMBOL        EA_SAVE
   D:0082H         SYMBOL        pread
   D:0007H         SYMBOL        byte
   -------         ENDDO         
-  C:0A3FH         LINE#         83
-  C:0A3FH         LINE#         84
-  C:0A3FH         LINE#         85
-  C:0A43H         LINE#         89
-  C:0A45H         LINE#         91
-  C:0A49H         LINE#         93
-  C:0A4CH         LINE#         95
-  C:0A50H         LINE#         97
-  C:0A50H         LINE#         98
+  C:0B73H         LINE#         83
+  C:0B73H         LINE#         84
+  C:0B73H         LINE#         85
+  C:0B77H         LINE#         89
+  C:0B79H         LINE#         91
+  C:0B7DH         LINE#         93
+  C:0B80H         LINE#         95
+  C:0B84H         LINE#         97
+  C:0B84H         LINE#         98
   -------         ENDPROC       _FLASH_BYTEREAD
   -------         PROC          _FLASH_PAGEERASE
   D:0006H         SYMBOL        addr
@@ -747,27 +758,30 @@ SYMBOL TABLE OF MODULE:  .\Objects\EFM8LB10F16_uart0_STDIO (?C_STARTUP)
   B:0020H.0       SYMBOL        EA_SAVE
   D:0082H         SYMBOL        pwrite
   -------         ENDDO         
-  C:092FH         LINE#         116
-  C:092FH         LINE#         117
-  C:092FH         LINE#         118
-  C:0933H         LINE#         121
-  C:0935H         LINE#         123
-  C:0938H         LINE#         125
-  C:093BH         LINE#         127
-  C:093FH         LINE#         129
-  C:0942H         LINE#         130
-  C:0945H         LINE#         131
-  C:0948H         LINE#         133
-  C:094BH         LINE#         135
-  C:094EH         LINE#         136
-  C:0950H         LINE#         138
-  C:0953H         LINE#         140
-  C:0957H         LINE#         141
+  C:0A8FH         LINE#         116
+  C:0A8FH         LINE#         117
+  C:0A8FH         LINE#         118
+  C:0A93H         LINE#         121
+  C:0A95H         LINE#         123
+  C:0A98H         LINE#         125
+  C:0A9BH         LINE#         127
+  C:0A9FH         LINE#         129
+  C:0AA2H         LINE#         130
+  C:0AA5H         LINE#         131
+  C:0AA8H         LINE#         133
+  C:0AABH         LINE#         135
+  C:0AAEH         LINE#         136
+  C:0AB0H         LINE#         138
+  C:0AB3H         LINE#         140
+  C:0AB7H         LINE#         141
   -------         ENDPROC       _FLASH_PAGEERASE
   -------         ENDMOD        EFM8LB1_FLASHPRIMITIVES
 
   -------         MODULE        ?C?COPY
   C:043AH         PUBLIC        ?C?COPY
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  14:07:49  PAGE 14
+
+
   -------         ENDMOD        ?C?COPY
 
   -------         MODULE        ?C?CLDOPTR
@@ -778,14 +792,15 @@ SYMBOL TABLE OF MODULE:  .\Objects\EFM8LB10F16_uart0_STDIO (?C_STARTUP)
   C:048DH         PUBLIC        ?C?CSTOPTR
   -------         ENDMOD        ?C?CSTOPTR
 
+  -------         MODULE        ?C?ULCMP
+  C:04AFH         PUBLIC        ?C?ULCMP
+  -------         ENDMOD        ?C?ULCMP
+
   -------         MODULE        PRINTF
-BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  08/26/2026  13:35:25  PAGE 14
-
-
-  D:000AH         PUBLIC        ?_PRINTF517?BYTE
-  D:000AH         PUBLIC        ?_PRINTF?BYTE
-  D:000AH         PUBLIC        ?_SPRINTF517?BYTE
-  D:000AH         PUBLIC        ?_SPRINTF?BYTE
+  D:000BH         PUBLIC        ?_PRINTF517?BYTE
+  D:000BH         PUBLIC        ?_PRINTF?BYTE
+  D:000BH         PUBLIC        ?_SPRINTF517?BYTE
+  D:000BH         PUBLIC        ?_SPRINTF?BYTE
   C:0070H         PUBLIC        _PRINTF
   C:0070H         PUBLIC        _PRINTF517
   C:006AH         PUBLIC        _SPRINTF
@@ -793,27 +808,27 @@ SYMBOL TABLE OF MODULE:  .\Objects\EFM8LB10F16_uart0_STDIO (?C_STARTUP)
   -------         ENDMOD        PRINTF
 
   -------         MODULE        ?C?CLDPTR
-  C:04AFH         PUBLIC        ?C?CLDPTR
+  C:04C0H         PUBLIC        ?C?CLDPTR
   -------         ENDMOD        ?C?CLDPTR
 
   -------         MODULE        ?C?CSTPTR
-  C:04C8H         PUBLIC        ?C?CSTPTR
+  C:04D9H         PUBLIC        ?C?CSTPTR
   -------         ENDMOD        ?C?CSTPTR
 
   -------         MODULE        ?C?PLDIIDATA
-  C:04DAH         PUBLIC        ?C?PLDIIDATA
+  C:04EBH         PUBLIC        ?C?PLDIIDATA
   -------         ENDMOD        ?C?PLDIIDATA
 
   -------         MODULE        ?C?CCASE
-  C:04EAH         PUBLIC        ?C?CCASE
+  C:04FBH         PUBLIC        ?C?CCASE
   -------         ENDMOD        ?C?CCASE
 
   -------         MODULE        PUTCHAR
-  C:0980H         PUBLIC        _PUTCHAR
+  C:0AE0H         PUBLIC        _PUTCHAR
   -------         ENDMOD        PUTCHAR
 
 *** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
-    SEGMENT: ?PR?READLOGICCONTROL?EFM8LB1_UART_STDIO
+    SEGMENT: ?PR?_FLASHCHECKSUM?EFM8LB1_UART_STDIO
 
 *** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
     SEGMENT: ?PR?SILABS_STARTUP?EFM8LB1_UART_STDIO
@@ -821,5 +836,5 @@ SYMBOL TABLE OF MODULE:  .\Objects\EFM8LB10F16_uart0_STDIO (?C_STARTUP)
 *** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
     SEGMENT: ?PR?_CALCCHECKSUM?EFM8LB1_UART_STDIO
 
-Program Size: data=86.2 xdata=0 code=2696
+Program Size: data=78.1 xdata=0 code=3033
 LINK/LOCATE RUN COMPLETE.  3 WARNING(S),  0 ERROR(S)
