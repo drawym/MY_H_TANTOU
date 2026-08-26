@@ -1,5 +1,6 @@
 ".\Objects\SILABS_STARTUP.obj",
 ".\Objects\EFM8LB1_UART_STDIO.obj",
-".\Objects\InitDevice.obj" 
+".\Objects\InitDevice.obj",
+".\Objects\Interrupts.obj" 
 TO ".\Objects\EFM8LB10F16_uart0_STDIO" 
 PRINT(".\Listings\EFM8LB10F16_uart0_STDIO.m51") RAMSIZE(256) 

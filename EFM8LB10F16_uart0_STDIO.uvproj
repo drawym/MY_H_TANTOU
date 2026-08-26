@@ -391,6 +391,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\InitDevice.c</FilePath>
             </File>
+            <File>
+              <FileName>Interrupts.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\Interrupts.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

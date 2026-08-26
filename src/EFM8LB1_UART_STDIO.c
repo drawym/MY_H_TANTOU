@@ -5,13 +5,17 @@
 
 
 /*延时函数*/
+extern volatile uint32_t counter ;
+uint32_t start_counter =0;
 void delay_ms(uint16_t ms)
 {
-   // while(ms--)
-   // {
-   //    while(T0 != 0);
-   //    T0 = 0;
-   // }
+	start_counter = counter;
+	
+	while((counter - start_counter ) < (2*ms))
+	{
+		
+	};
+	
 }
 
 
@@ -315,8 +319,15 @@ void main (void)
 
    enter_DefaultMode_from_RESET();
 
-   SFRPAGE = 0x00;
+   IE_EA = 1;                          // Enable global interrupts
 
+//   while (1) {}
+	
+	
+	
+	
+	
+   SFRPAGE = 0x00;
    SCON0 = 0x50; // UART mode
    SCON0 |= 0x02; // set TI (transmit ready)
 
@@ -340,14 +351,7 @@ void main (void)
       P2MDIN |= 0x06;   // 数字输入使能
       P2MDOUT |= 0x06;  // 推挽输出
 
-      /*这里不需要，因为下面的RELAY_A，RELAY_B会输出对应的状态，这里重叠了*/
-      // // RY_A1 = P2.1 输出高
-      // P2 |= 0x02;
-      // // RY_A0 = P2.2 输出高
-      // P2 |= 0x04;
-
-
-
+  
       //根据logic_control.relay_status判断是否开启继电器
       if (logic_control.relay_status == 0x00)
       {
@@ -357,8 +361,6 @@ void main (void)
       {
          RELAY_B();
       }
-
-
 
    }
 
