@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   EFM8LB1_FLASHPRIMITIVES                                           08/26/2026 13:38:24 PAGE 1   
+C51 COMPILER V9.60.0.0   EFM8LB1_FLASHPRIMITIVES                                           08/26/2026 17:09:02 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE EFM8LB1_FLASHPRIMITIVES
@@ -62,7 +62,7 @@ line level    source
   52   1         pwrite = (SI_VARIABLE_SEGMENT_POINTER(, uint8_t, SI_SEG_XDATA)) addr;
   53   1      
   54   1         FLKEY  = 0xA5;                      // Key Sequence 1
-C51 COMPILER V9.60.0.0   EFM8LB1_FLASHPRIMITIVES                                           08/26/2026 13:38:24 PAGE 2   
+C51 COMPILER V9.60.0.0   EFM8LB1_FLASHPRIMITIVES                                           08/26/2026 17:09:02 PAGE 2   
 
   55   1         FLKEY  = 0xF1;                      // Key Sequence 2
   56   1         PSCTL |= 0x01;                      // PSWE = 1 which enables writes
@@ -126,7 +126,7 @@ line level    source
  114          //
  115          //-----------------------------------------------------------------------------
  116          void FLASH_PageErase (FLADDR addr)
-C51 COMPILER V9.60.0.0   EFM8LB1_FLASHPRIMITIVES                                           08/26/2026 13:38:24 PAGE 3   
+C51 COMPILER V9.60.0.0   EFM8LB1_FLASHPRIMITIVES                                           08/26/2026 17:09:02 PAGE 3   
 
  117          {
  118   1         bool EA_SAVE = IE_EA;                // Preserve IE_EA

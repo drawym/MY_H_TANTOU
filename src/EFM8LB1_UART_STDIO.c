@@ -401,12 +401,8 @@ void main (void)
 
    IE_EA = 1;                          // Enable global interrupts
 
+   // while(1);
 
-	
-	
-	
-	
-	
    SFRPAGE = 0x00;
    SCON0 = 0x50; // UART mode
    SCON0 |= 0x02; // set TI (transmit ready)
@@ -424,17 +420,17 @@ void main (void)
 
    }
 
-   /* Restore saved DAC code and reject invalid legacy data. */
-   if (logic_control.zero_control_value <= DAC1_MAX_CODE)
-   {
-      DAC1_SetCode(logic_control.zero_control_value);
-   }
-   else
-   {
-      logic_control.zero_control_value = 0;
-      DAC1_SetCode(0);
-      saveLogicControl();
-   }
+   // /* Restore saved DAC code and reject invalid legacy data. */
+   // if (logic_control.zero_control_value <= DAC1_MAX_CODE)
+   // {
+   //    DAC1_SetCode(logic_control.zero_control_value);
+   // }
+   // else
+   // {
+   //    logic_control.zero_control_value = 0;
+   //    DAC1_SetCode(0);
+   //    saveLogicControl();
+   // }
 
 
 
@@ -479,16 +475,16 @@ void main (void)
          case LOGIC_STATE_ZERO_CONTROL:  //零点控制状态
 
 
-
-            if(logic_control.zero_control_value>=DAC1_MIN_CODE && logic_control.zero_control_value<=DAC1_MAX_CODE)
-            {
-               DAC1_SetCode(logic_control.zero_control_value);
-               saveLogicControl();
-            }
-            else
-            {
-               RETARGET_PRINTF("\r\n[ERROR] ZERO_CONTROL_VALUE_ERROR\r\n");
-            }
+         // DAC1_SetCode(4000);
+            // if(logic_control.zero_control_value>=DAC1_MIN_CODE && logic_control.zero_control_value<=DAC1_MAX_CODE)
+            // {
+            //    DAC1_SetCode(logic_control.zero_control_value);
+            //    saveLogicControl();
+            // }
+            // else
+            // {
+            //    RETARGET_PRINTF("\r\n[ERROR] ZERO_CONTROL_VALUE_ERROR\r\n");
+            // }
 
 
 

@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                08/26/2026 17:01:55 PAGE 1   
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                08/28/2026 13:38:39 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE EFM8LB1_UART_STDIO
@@ -62,7 +62,7 @@ line level    source
   52          
   53          
   54          logic_state_t logic_state; //状态机执行状态
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                08/26/2026 17:01:55 PAGE 2   
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                08/28/2026 13:38:39 PAGE 2   
 
   55          
   56          /***********************************逻辑控制*************************************/
@@ -126,7 +126,7 @@ line level    source
  114   2         }
  115   1      
  116   1         logic_control = storage.mydata;
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                08/26/2026 17:01:55 PAGE 3   
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                08/28/2026 13:38:39 PAGE 3   
 
  117   1         return 1;
  118   1      }
@@ -190,7 +190,7 @@ line level    source
  175          
  176          
  177          
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                08/26/2026 17:01:55 PAGE 4   
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                08/28/2026 13:38:39 PAGE 4   
 
  178          
  179          
@@ -254,7 +254,7 @@ line level    source
  237   1          unsigned char sum = 0;
  238   1          unsigned char i;
  239   1      
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                08/26/2026 17:01:55 PAGE 5   
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                08/28/2026 13:38:39 PAGE 5   
 
  240   1          sum += type;
  241   1          sum += len;
@@ -318,7 +318,7 @@ line level    source
  298   2               //判断是否到数据长度
  299   2               if (uart_rx_buffer.index == 3)
  300   2               {
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                08/26/2026 17:01:55 PAGE 6   
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                08/28/2026 13:38:39 PAGE 6   
 
  301   3                  uart_rx_buffer.data_length = c;
  302   3                  if (uart_rx_buffer.data_length > UART_RX_BUFFER_SIZE - 4) 
@@ -382,7 +382,7 @@ line level    source
  356   3                 unsigned char chk;
  357   3                 chk  = uart_rx_buffer.type;
  358   3                 chk += 0x02;
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                08/26/2026 17:01:55 PAGE 7   
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                08/28/2026 13:38:39 PAGE 7   
 
  359   3                 chk += 0xFF;
  360   3                 chk += 0xFF;
@@ -429,153 +429,147 @@ line level    source
  401   1      
  402   1         IE_EA = 1;                          // Enable global interrupts
  403   1      
- 404   1      //   while (1) {}
- 405   1        
- 406   1        
- 407   1        
- 408   1        
- 409   1        
- 410   1         SFRPAGE = 0x00;
- 411   1         SCON0 = 0x50; // UART mode
- 412   1         SCON0 |= 0x02; // set TI (transmit ready)
- 413   1      
- 414   1      
- 415   1         /*取flash的数据*/
- 416   1         {
- 417   2            uint8_t ret;
- 418   2            ret = readLogicControl();
- 419   2          
- 420   2        
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                08/26/2026 17:01:55 PAGE 8   
-
- 421   2            RETARGET_PRINTF("\r\n[INIT_Flash_ok]\r\n");
- 422   2            //打印信息
- 423   2            RETARGET_PRINTF("\r\n[INFO] logic_control.zero_control_value = %d, logic_control.relay_status = %d\r
+ 404   1         // while(1);
+ 405   1      
+ 406   1         SFRPAGE = 0x00;
+ 407   1         SCON0 = 0x50; // UART mode
+ 408   1         SCON0 |= 0x02; // set TI (transmit ready)
+ 409   1      
+ 410   1      
+ 411   1         /*取flash的数据*/
+ 412   1         {
+ 413   2            uint8_t ret;
+ 414   2            ret = readLogicControl();
+ 415   2          
+ 416   2        
+ 417   2            RETARGET_PRINTF("\r\n[INIT_Flash_ok]\r\n");
+ 418   2            //打印信息
+ 419   2            RETARGET_PRINTF("\r\n[INFO] logic_control.zero_control_value = %d, logic_control.relay_status = %d\r
              -\n", logic_control.zero_control_value, logic_control.relay_status);
- 424   2      
- 425   2         }
- 426   1      
- 427   1         /* Restore saved DAC code and reject invalid legacy data. */
- 428   1         if (logic_control.zero_control_value <= DAC1_MAX_CODE)
- 429   1         {
- 430   2            DAC1_SetCode(logic_control.zero_control_value);
- 431   2         }
- 432   1         else
- 433   1         {
- 434   2            logic_control.zero_control_value = 0;
- 435   2            DAC1_SetCode(0);
- 436   2            saveLogicControl();
- 437   2         }
- 438   1      
- 439   1      
- 440   1      
- 441   1         /*上电对继电器进行初始化，关闭继电器，逻辑为RY_A1是P2.1 ， RY_A0 是P2.2 */
- 442   1         {
- 443   2      
- 444   2            // 确保 P2.1/P2.2 作为普通 GPIO
- 445   2            P2SKIP |= 0x06;   // bit1 + bit2 = 0x02 + 0x04
- 446   2      
- 447   2            // 配置 P2.1 P2.2 为推挽输出 (开漏则改为 P2MDIN & P2MDOUT 对应位置0)
- 448   2            P2MDIN |= 0x06;   // 数字输入使能
- 449   2            P2MDOUT |= 0x06;  // 推挽输出
- 450   2      
- 451   2        
- 452   2            //根据logic_control.relay_status判断是否开启继电器
- 453   2            if (logic_control.relay_status == 0x00)
- 454   2            {
- 455   3               RELAY_A();
- 456   3            }
- 457   2            else
- 458   2            {
- 459   3               RELAY_B();
- 460   3            }
- 461   2      
- 462   2         }
- 463   1      
- 464   1      
- 465   1      
- 466   1         while (1)
- 467   1         {
- 468   2            FrameDataAcquisition();  //串口接收数据
- 469   2      
- 470   2      
- 471   2            //根据逻辑状态处理数据
- 472   2            switch (logic_state)
- 473   2            {
- 474   3               case LOGIC_STATE_IDLE:  //空闲状态
- 475   3      
- 476   3      
- 477   3                  break;
- 478   3      
- 479   3               case LOGIC_STATE_ZERO_CONTROL:  //零点控制状态
- 480   3      
- 481   3      
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                08/26/2026 17:01:55 PAGE 9   
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                08/28/2026 13:38:39 PAGE 8   
 
- 482   3      
- 483   3                  if(logic_control.zero_control_value>=DAC1_MIN_CODE && logic_control.zero_control_value<=DAC1_M
-             -AX_CODE)
- 484   3                  {
- 485   4                     DAC1_SetCode(logic_control.zero_control_value);
- 486   4                     saveLogicControl();
- 487   4                  }
- 488   3                  else
- 489   3                  {
- 490   4                     RETARGET_PRINTF("\r\n[ERROR] ZERO_CONTROL_VALUE_ERROR\r\n");
- 491   4                  }
- 492   3      
- 493   3      
+ 420   2      
+ 421   2         }
+ 422   1      
+ 423   1         // /* Restore saved DAC code and reject invalid legacy data. */
+ 424   1         // if (logic_control.zero_control_value <= DAC1_MAX_CODE)
+ 425   1         // {
+ 426   1         //    DAC1_SetCode(logic_control.zero_control_value);
+ 427   1         // }
+ 428   1         // else
+ 429   1         // {
+ 430   1         //    logic_control.zero_control_value = 0;
+ 431   1         //    DAC1_SetCode(0);
+ 432   1         //    saveLogicControl();
+ 433   1         // }
+ 434   1      
+ 435   1      
+ 436   1      
+ 437   1         /*上电对继电器进行初始化，关闭继电器，逻辑为RY_A1是P2.1 ， RY_A0 是P2.2 */
+ 438   1         {
+ 439   2      
+ 440   2            // 确保 P2.1/P2.2 作为普通 GPIO
+ 441   2            P2SKIP |= 0x06;   // bit1 + bit2 = 0x02 + 0x04
+ 442   2      
+ 443   2            // 配置 P2.1 P2.2 为推挽输出 (开漏则改为 P2MDIN & P2MDOUT 对应位置0)
+ 444   2            P2MDIN |= 0x06;   // 数字输入使能
+ 445   2            P2MDOUT |= 0x06;  // 推挽输出
+ 446   2      
+ 447   2        
+ 448   2            //根据logic_control.relay_status判断是否开启继电器
+ 449   2            if (logic_control.relay_status == 0x00)
+ 450   2            {
+ 451   3               RELAY_A();
+ 452   3            }
+ 453   2            else
+ 454   2            {
+ 455   3               RELAY_B();
+ 456   3            }
+ 457   2      
+ 458   2         }
+ 459   1      
+ 460   1      
+ 461   1      
+ 462   1         while (1)
+ 463   1         {
+ 464   2            FrameDataAcquisition();  //串口接收数据
+ 465   2      
+ 466   2      
+ 467   2            //根据逻辑状态处理数据
+ 468   2            switch (logic_state)
+ 469   2            {
+ 470   3               case LOGIC_STATE_IDLE:  //空闲状态
+ 471   3      
+ 472   3      
+ 473   3                  break;
+ 474   3      
+ 475   3               case LOGIC_STATE_ZERO_CONTROL:  //零点控制状态
+ 476   3      
+ 477   3      
+ 478   3               // DAC1_SetCode(4000);
+ 479   3                  // if(logic_control.zero_control_value>=DAC1_MIN_CODE && logic_control.zero_control_value<=DAC
+             -1_MAX_CODE)
+ 480   3                  // {
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                08/28/2026 13:38:39 PAGE 9   
+
+ 481   3                  //    DAC1_SetCode(logic_control.zero_control_value);
+ 482   3                  //    saveLogicControl();
+ 483   3                  // }
+ 484   3                  // else
+ 485   3                  // {
+ 486   3                  //    RETARGET_PRINTF("\r\n[ERROR] ZERO_CONTROL_VALUE_ERROR\r\n");
+ 487   3                  // }
+ 488   3      
+ 489   3      
+ 490   3      
+ 491   3                  logic_state = LOGIC_STATE_IDLE; 
+ 492   3                  break;
+ 493   3               case LOGIC_STATE_DEFLUX:  //消磁状态
  494   3      
- 495   3                  logic_state = LOGIC_STATE_IDLE; 
- 496   3                  break;
- 497   3               case LOGIC_STATE_DEFLUX:  //消磁状态
- 498   3      
- 499   3                  /*在这里写消磁的逻辑，也就是控制DAC即P30，输出可变幅度的正弦波
- 500   3                    正弦波的逻辑是这样子的，首先先输出满摆幅，即以1/2 4096为零点，上
+ 495   3                  /*在这里写消磁的逻辑，也就是控制DAC即P30，输出可变幅度的正弦波
+ 496   3                    正弦波的逻辑是这样子的，首先先输出满摆幅，即以1/2 4096为零点，上
              -下满幅摆动的正弦波，满摆时间为500ms
- 501   3                    然后以渐摆1.5S的时间到1/2 4096，正弦波的频率为300Hz
- 502   3                  */
+ 497   3                    然后以渐摆1.5S的时间到1/2 4096，正弦波的频率为300Hz
+ 498   3                  */
+ 499   3      
+ 500   3                  logic_state = LOGIC_STATE_IDLE; 
+ 501   3                  break;
+ 502   3               case LOGIC_STATE_RELAY_SWITCH:  //继电器状态
  503   3      
- 504   3                  logic_state = LOGIC_STATE_IDLE; 
- 505   3                  break;
- 506   3               case LOGIC_STATE_RELAY_SWITCH:  //继电器状态
- 507   3      
- 508   3                  /*在这里写继电器的逻辑，也就是控制继电器的开闭*/
- 509   3                  if (logic_control.relay_status == 0x00)
- 510   3                  {
- 511   4                     RELAY_A();
- 512   4                     saveLogicControl();
- 513   4                     /*发送成功的帧*/
- 514   4                     RETARGET_PRINTF("\r\n[INFO] RELAY_A\r\n");
- 515   4                  }
- 516   3                  else if (logic_control.relay_status == 0x01)
- 517   3                  {
- 518   4                     RELAY_B();
- 519   4                     saveLogicControl();
- 520   4                     /*发送成功的帧*/
- 521   4                     RETARGET_PRINTF("\r\n[INFO] RELAY_B\r\n");
+ 504   3                  /*在这里写继电器的逻辑，也就是控制继电器的开闭*/
+ 505   3                  if (logic_control.relay_status == 0x00)
+ 506   3                  {
+ 507   4                     RELAY_A();
+ 508   4                     saveLogicControl();
+ 509   4                     /*发送成功的帧*/
+ 510   4                     RETARGET_PRINTF("\r\n[INFO] RELAY_A\r\n");
+ 511   4                  }
+ 512   3                  else if (logic_control.relay_status == 0x01)
+ 513   3                  {
+ 514   4                     RELAY_B();
+ 515   4                     saveLogicControl();
+ 516   4                     /*发送成功的帧*/
+ 517   4                     RETARGET_PRINTF("\r\n[INFO] RELAY_B\r\n");
+ 518   4                  }
+ 519   3                  else
+ 520   3                  {
+ 521   4                     /*发送失败的帧*/
  522   4                  }
- 523   3                  else
- 524   3                  {
- 525   4                     /*发送失败的帧*/
- 526   4                  }
- 527   3                  logic_state = LOGIC_STATE_IDLE; 
- 528   3                  break;
- 529   3            }
- 530   2      
- 531   2         }
- 532   1      }
+ 523   3                  logic_state = LOGIC_STATE_IDLE; 
+ 524   3                  break;
+ 525   3            }
+ 526   2      
+ 527   2         }
+ 528   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    975    ----
-   CONSTANT SIZE    =    321    ----
+   CODE SIZE        =    903    ----
+   CONSTANT SIZE    =    284    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
    DATA SIZE        =     35      34
    IDATA SIZE       =   ----    ----
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                08/26/2026 17:01:55 PAGE 10  
-
    BIT SIZE         =   ----    ----
 END OF MODULE INFORMATION.
 

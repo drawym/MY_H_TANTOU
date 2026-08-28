@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="ASCII"?>
+<device:XMLDevice name="EFM8LB12F64E-A-QFN32" partId="mcu.8051.efm8.lb1.efm8lb12f64e-a-qfn32" xmlns:device="http://www.silabs.com/ss/hwconfig/document/device.ecore" xmlns:xmi="http://www.omg.org/XMI" xmi:version="2.0">
+  <mode name="DefaultMode">
+    <property object="CIP51_0" propertyId="ABPeripheral.included" value="true"/>
+    <property object="CIP51_0" propertyId="cip51.prefetchenginecontrol.flashreadtiming" value="SYSCLK is below 75 MHz"/>
+    <property object="CLOCK_0" propertyId="ABPeripheral.included" value="true"/>
+    <property object="CLOCK_0" propertyId="clock.clockselect.clocksourcedivider" value="SYSCLK / 1"/>
+    <property object="CLOCK_0" propertyId="clock.clockselect.selectclocksource" value="Internal High Frequency Oscillator 1"/>
+    <property object="DACGCF_0" propertyId="ABPeripheral.included" value="true"/>
+    <property object="DAC_0" propertyId="ABPeripheral.included" value="true"/>
+    <property object="DAC_0" propertyId="dac.configuration.updatetriggersource" value="Timer 4"/>
+    <property object="DAC_0" propertyId="dac.enable.enabledac#" value="Enabled"/>
+    <property object="DAC_1" propertyId="ABPeripheral.included" value="true"/>
+    <property object="DAC_1" propertyId="dac.configuration.updatetriggersource" value="Timer 4"/>
+    <property object="DAC_1" propertyId="dac.enable.enabledac#" value="Enabled"/>
+    <property object="DAC_2" propertyId="ABPeripheral.included" value="true"/>
+    <property object="DAC_2" propertyId="dac.configuration.updatetriggersource" value="Timer 4"/>
+    <property object="DAC_2" propertyId="dac.enable.enabledac#" value="Enabled"/>
+    <property object="DAC_3" propertyId="ABPeripheral.included" value="true"/>
+    <property object="DAC_3" propertyId="dac.configuration.updatetriggersource" value="Timer 4"/>
+    <property object="DAC_3" propertyId="dac.enable.enabledac#" value="Enabled"/>
+    <property object="DefaultMode" propertyId="mode.diagramLocation" value="165, 91"/>
+    <property object="INTERRUPT_0" propertyId="ABPeripheral.included" value="true"/>
+    <property object="INTERRUPT_0" propertyId="interrupt.extendedinterruptenable2.enabletimer4interrupt" value="Enabled"/>
+    <property object="INTERRUPT_0" propertyId="interrupt.interruptenable.enableallinterrupts" value="Enabled"/>
+    <property object="INTERRUPT_0" propertyId="interruptenables.codegenerationoptions.generateinterruptfunctions" value="Disabled"/>
+    <property object="P1.4" propertyId="ports.settings.iomode" value="Digital Push-Pull Output"/>
+    <property object="P1.4" propertyId="ports.settings.outputmode" value="Push-pull"/>
+    <property object="P3.0" propertyId="ports.settings.inputmode" value="Analog"/>
+    <property object="P3.0" propertyId="ports.settings.iomode" value="Analog I/O"/>
+    <property object="P3.1" propertyId="ports.settings.inputmode" value="Analog"/>
+    <property object="P3.1" propertyId="ports.settings.iomode" value="Analog I/O"/>
+    <property object="P3.2" propertyId="ports.settings.inputmode" value="Analog"/>
+    <property object="P3.2" propertyId="ports.settings.iomode" value="Analog I/O"/>
+    <property object="P3.3" propertyId="ports.settings.inputmode" value="Analog"/>
+    <property object="P3.3" propertyId="ports.settings.iomode" value="Analog I/O"/>
+    <property object="P3.4" propertyId="ports.settings.iomode" value="Digital Push-Pull Output"/>
+    <property object="P3.4" propertyId="ports.settings.outputmode" value="Push-pull"/>
+    <property object="PBCFG_0" propertyId="pbcfg.settings.enablecrossbar" value="Enabled"/>
+    <property object="SMBUS_0" propertyId="smbus.configuration.timer2highbyteoverflowfrequency" value="91.000 Hz"/>
+    <property object="SMBUS_0" propertyId="smbus.configuration.timer2lowbyteoverflowfrequency" value="23.437 kHz"/>
+    <property object="TIMER01_0" propertyId="ABPeripheral.included" value="true"/>
+    <property object="TIMER16_2" propertyId="ABPeripheral.included" value="true"/>
+    <property object="TIMER16_3" propertyId="ABPeripheral.included" value="true"/>
+    <property object="TIMER16_4" propertyId="ABPeripheral.included" value="true"/>
+    <property object="TIMER16_4" propertyId="timer16.control.clocksource" value="SYSCLK"/>
+    <property object="TIMER16_4" propertyId="timer16.control.runcontrol" value="Start"/>
+    <property object="TIMER16_4" propertyId="timer16.control.timerrunningstate" value="Timer is Running"/>
+    <property object="TIMER16_4" propertyId="timer16.highbyte.highbyte" value="249"/>
+    <property object="TIMER16_4" propertyId="timer16.initandreloadvalue.targetoverflowfrequency" value="44000"/>
+    <property object="TIMER16_4" propertyId="timer16.initandreloadvalue.timerinitvalue" value="63900"/>
+    <property object="TIMER16_4" propertyId="timer16.initandreloadvalue.timerreloadvalue" value="63900"/>
+    <property object="TIMER16_4" propertyId="timer16.lowbyte.lowbyte" value="156"/>
+    <property object="TIMER16_4" propertyId="timer16.reloadhighbyte.reloadhighbyte" value="249"/>
+    <property object="TIMER16_4" propertyId="timer16.reloadlowbyte.reloadlowbyte" value="156"/>
+    <property object="TIMER16_5" propertyId="ABPeripheral.included" value="true"/>
+    <property object="TIMER_SETUP_0" propertyId="ABPeripheral.included" value="true"/>
+    <property object="TIMER_SETUP_0" propertyId="timer_setup.clockcontrol.timer4lowbyteclockselect" value="Use SYSCLK"/>
+    <property object="WDT_0" propertyId="ABPeripheral.included" value="true"/>
+    <property object="WDT_0" propertyId="wdt.watchdogcontrol.wdtenable" value="Disable"/>
+  </mode>
+  <modeTransition>
+    <property object="RESET &#8594; DefaultMode" propertyId="modeTransition.target" value="DefaultMode"/>
+    <property object="RESET &#8594; DefaultMode" propertyId="modeTransition.source" value="RESET"/>
+  </modeTransition>
+</device:XMLDevice>

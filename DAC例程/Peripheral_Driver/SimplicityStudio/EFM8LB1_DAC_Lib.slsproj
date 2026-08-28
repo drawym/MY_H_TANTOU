@@ -1,0 +1,23 @@
+<project name="EFM8LB1_DAC_Lib" contentRoot=".." partCompatibility="mcu.8051.efm8.lb1" boardCompatibility="brd5300a">
+  <property key="category" value="DAC|Peripheral Driver"/>
+  <file name="EFM8LB1_DAC_Lib.hwconf"/>
+  <folder includeAllFiles="false" includeAllFolders="false" name="inc" uri="inc">
+    <file name="InitDevice.h"/>
+    <file name="efm8_config.h"/>
+  </folder>
+  <folder includeAllFiles="false" includeAllFolders="false" name="src" uri="src">
+    <file name="EFM8LB1_DAC_Lib.c"/>
+    <file name="InitDevice.c"/>
+  </folder>
+  <module id="com.silabs.sdk.si8051.external.efm8PeripheralDriver.dac0"/>
+  <module id="com.silabs.sdk.si8051.external.efm8PeripheralDriver.dac1"/>
+  <module id="com.silabs.sdk.si8051.external.efm8PeripheralDriver.dac2"/>
+  <module id="com.silabs.sdk.si8051.external.efm8PeripheralDriver.dac3"/>
+  <sourceFolder>src</sourceFolder>
+  <includePath languageCompatibility="c" uri="studio:/project/inc/"/>
+  <property key="initiallyOpenedResource" value="src/EFM8LB1_DAC_Lib.c"/>
+  <module id="com.silabs.sdk.si8051.shared"/>
+<toolOption toolId="com.silabs.ide.si8051.keil.toolchain.assembler" optionId="com.silabs.ide.si8051.keil.assembler.category.symbols.def">
+   <toolListOption value="SILABS_STARTUP=1"/>
+  </toolOption>
+</project>

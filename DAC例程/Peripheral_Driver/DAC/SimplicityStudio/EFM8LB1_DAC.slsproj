@@ -1,0 +1,19 @@
+<project name="EFM8LB1_DAC" contentRoot=".." partCompatibility="mcu.8051.efm8.lb1" boardCompatibility="brd5300a">
+  <property key="category" value="DAC"/>
+  <file name="EFM8LB1_DAC.hwconf"/>
+  <folder includeAllFiles="false" includeAllFolders="false" name="inc" uri="inc">
+    <file name="InitDevice.h"/>
+  </folder>
+  <folder includeAllFiles="false" includeAllFolders="false" name="src" uri="src">
+    <file name="EFM8LB1_DAC.c"/>
+    <file name="InitDevice.c"/>
+    <file name="Interrupts.c"/>
+  </folder>
+  <sourceFolder/>
+  <sourceFolder>src</sourceFolder>
+  <includePath languageCompatibility="c" uri="studio:/project/inc/"/>
+  <module id="com.silabs.sdk.si8051.shared"/>
+<toolOption toolId="com.silabs.ide.si8051.keil.toolchain.assembler" optionId="com.silabs.ide.si8051.keil.assembler.category.symbols.def">
+   <toolListOption value="SILABS_STARTUP=1"/>
+  </toolOption>
+</project>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="ASCII"?>
+<device:XMLDevice name="EFM8LB12F64E-A-QFN32" partId="mcu.8051.efm8.lb1.efm8lb12f64e-a-qfn32" xmlns:device="http://www.silabs.com/ss/hwconfig/document/device.ecore" xmlns:xmi="http://www.omg.org/XMI" xmi:version="2.0">
+  <mode name="DefaultMode">
+    <property object="CIP51_0" propertyId="cip51.prefetchenginecontrol.sysclk" value="24500000"/>
+    <property object="CLOCK_0" propertyId="ABPeripheral.included" value="true"/>
+    <property object="CLOCK_0" propertyId="clock.clockselect.clocksourcedivider" value="SYSCLK / 1"/>
+    <property object="DACGCF_0" propertyId="ABPeripheral.included" value="true"/>
+    <property object="DACGCF_0" propertyId="dacgcf.dac01configuration.dac01referencevoltageselection" value="VREF"/>
+    <property object="DACGCF_0" propertyId="dacgcf.dac23configuration.dac23referencevoltageselection" value="VREF"/>
+    <property object="DAC_0" propertyId="ABPeripheral.included" value="true"/>
+    <property object="DAC_0" propertyId="dac.configuration.updatetriggersource" value="Timer 3"/>
+    <property object="DAC_0" propertyId="dac.enable.enabledac#" value="Enabled"/>
+    <property object="DAC_1" propertyId="ABPeripheral.included" value="true"/>
+    <property object="DAC_1" propertyId="dac.configuration.updatetriggersource" value="Timer 3"/>
+    <property object="DAC_1" propertyId="dac.enable.enabledac#" value="Enabled"/>
+    <property object="DAC_2" propertyId="ABPeripheral.included" value="true"/>
+    <property object="DAC_2" propertyId="dac.configuration.updatetriggersource" value="Timer 3"/>
+    <property object="DAC_2" propertyId="dac.enable.enabledac#" value="Enabled"/>
+    <property object="DAC_3" propertyId="ABPeripheral.included" value="true"/>
+    <property object="DAC_3" propertyId="dac.configuration.updatetriggersource" value="Timer 3"/>
+    <property object="DAC_3" propertyId="dac.enable.enabledac#" value="Enabled"/>
+    <property object="DefaultMode" propertyId="mode.diagramLocation" value="0, 0"/>
+    <property object="P1.4" propertyId="ports.settings.iomode" value="Digital Push-Pull Output"/>
+    <property object="P1.4" propertyId="ports.settings.outputmode" value="Push-pull"/>
+    <property object="P3.4" propertyId="ports.settings.iomode" value="Digital Push-Pull Output"/>
+    <property object="P3.4" propertyId="ports.settings.outputmode" value="Push-pull"/>
+    <property object="PBCFG_0" propertyId="pbcfg.settings.enablecrossbar" value="Enabled"/>
+    <property object="VREF_0" propertyId="ABPeripheral.included" value="true"/>
+    <property object="VREF_0" propertyId="vref.control.voltagereferenceselection" value="Internal 2.4V (output to VREF pin)"/>
+    <property object="VREF_0" propertyId="vref.control.vrefoutput" value="2.4 V Reference"/>
+    <property object="WDT_0" propertyId="ABPeripheral.included" value="true"/>
+    <property object="WDT_0" propertyId="wdt.watchdogcontrol.wdtenable" value="Disable"/>
+  </mode>
+  <modeTransition>
+    <property object="RESET &#8594; DefaultMode" propertyId="modeTransition.target" value="DefaultMode"/>
+    <property object="RESET &#8594; DefaultMode" propertyId="modeTransition.source" value="RESET"/>
+  </modeTransition>
+</device:XMLDevice>

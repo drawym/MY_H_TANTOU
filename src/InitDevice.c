@@ -35,6 +35,7 @@ extern void enter_DefaultMode_from_RESET(void) {
 	INTERRUPT_0_enter_DefaultMode_from_RESET();
 	UART_0_enter_DefaultMode_from_RESET();
 	
+
 	// Restore the SFRPAGE
 	SFRPAGE = SFRPAGE_save;
 	// [Config Calls]$
@@ -659,5 +660,4 @@ extern void INTERRUPT_0_enter_DefaultMode_from_RESET(void) {
 	// [IPH - Interrupt Priority High]$
 
 }
-
 
