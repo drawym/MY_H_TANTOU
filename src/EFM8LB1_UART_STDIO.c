@@ -1,4 +1,3 @@
-
 #include <SI_EFM8LB1_Register_Enums.h>
 #include "retargetserial.h"
 #include "InitDevice.h"
@@ -397,6 +396,7 @@ void main (void)
 {
 
    enter_DefaultMode_from_RESET();
+   DAC0_Init();
    DAC1_Init();
 
    IE_EA = 1;                          // Enable global interrupts
@@ -421,16 +421,15 @@ void main (void)
    }
 
    // /* Restore saved DAC code and reject invalid legacy data. */
-   // if (logic_control.zero_control_value <= DAC1_MAX_CODE)
-   // {
-   //    DAC1_SetCode(logic_control.zero_control_value);
-   // }
-   // else
-   // {
-   //    logic_control.zero_control_value = 0;
-   //    DAC1_SetCode(0);
-   //    saveLogicControl();
-   // }
+   if (logic_control.zero_control_value <= DAC1_MAX_CODE)
+   {
+      DAC1_SetCode(logic_control.zero_control_value);
+   }
+   else
+   {
+      logic_control.zero_control_value = 0;
+      DAC1_SetCode(0);
+   }
 
 
 
@@ -476,15 +475,15 @@ void main (void)
 
 
          // DAC1_SetCode(4000);
-            // if(logic_control.zero_control_value>=DAC1_MIN_CODE && logic_control.zero_control_value<=DAC1_MAX_CODE)
-            // {
-            //    DAC1_SetCode(logic_control.zero_control_value);
-            //    saveLogicControl();
-            // }
-            // else
-            // {
-            //    RETARGET_PRINTF("\r\n[ERROR] ZERO_CONTROL_VALUE_ERROR\r\n");
-            // }
+            if(logic_control.zero_control_value>=DAC1_MIN_CODE && logic_control.zero_control_value<=DAC1_MAX_CODE)
+            {
+               DAC1_SetCode(logic_control.zero_control_value);
+               saveLogicControl();
+            }
+            else
+            {
+               RETARGET_PRINTF("\r\n[ERROR] ZERO_CONTROL_VALUE_ERROR\r\n");
+            }
 
 
 

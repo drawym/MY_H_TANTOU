@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/27/2026 09:04:41 PAGE 1   
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE INITDEVICE
@@ -42,659 +42,709 @@ line level    source
   32   1        CLOCK_0_enter_DefaultMode_from_RESET();
   33   1        TIMER01_0_enter_DefaultMode_from_RESET();
   34   1        TIMER_SETUP_0_enter_DefaultMode_from_RESET();
-  35   1        INTERRUPT_0_enter_DefaultMode_from_RESET();
-  36   1        UART_0_enter_DefaultMode_from_RESET();
-  37   1        
-  38   1      
-  39   1        // Restore the SFRPAGE
-  40   1        SFRPAGE = SFRPAGE_save;
-  41   1        // [Config Calls]$
-  42   1      
-  43   1      }
-  44          
-  45          //================================================================================
-  46          // WDT_0_enter_DefaultMode_from_RESET
-  47          //================================================================================
-  48          extern void WDT_0_enter_DefaultMode_from_RESET(void) {
-  49   1        // $[WDTCN - Watchdog Timer Control]
-  50   1        SFRPAGE = 0x00;
-  51   1        //Disable Watchdog with key sequence
-  52   1        WDTCN = 0xDE; //First key
-  53   1        WDTCN = 0xAD; //Second key
-  54   1        // [WDTCN - Watchdog Timer Control]$
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/27/2026 09:04:41 PAGE 2   
+  35   1        TIMER16_2_enter_DefaultMode_from_RESET();
+  36   1        INTERRUPT_0_enter_DefaultMode_from_RESET();
+  37   1        UART_0_enter_DefaultMode_from_RESET();
+  38   1        
+  39   1      
+  40   1        // Restore the SFRPAGE
+  41   1        SFRPAGE = SFRPAGE_save;
+  42   1        // [Config Calls]$
+  43   1      
+  44   1      }
+  45          
+  46          //================================================================================
+  47          // WDT_0_enter_DefaultMode_from_RESET
+  48          //================================================================================
+  49          extern void WDT_0_enter_DefaultMode_from_RESET(void) {
+  50   1        // $[WDTCN - Watchdog Timer Control]
+  51   1        SFRPAGE = 0x00;
+  52   1        //Disable Watchdog with key sequence
+  53   1        WDTCN = 0xDE; //First key
+  54   1        WDTCN = 0xAD; //Second key
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 2   
 
-  55   1      
-  56   1      }
-  57          
-  58          //================================================================================
-  59          // PORTS_0_enter_DefaultMode_from_RESET
-  60          //================================================================================
-  61          extern void PORTS_0_enter_DefaultMode_from_RESET(void) {
-  62   1        // $[P0 - Port 0 Pin Latch]
-  63   1        /*
-  64   1         // B0 (Port 0 Bit 0 Latch) = HIGH (P0.0 is high. Set P0.0 to drive or
-  65   1         //     float high.)
-  66   1         // B1 (Port 0 Bit 1 Latch) = HIGH (P0.1 is high. Set P0.1 to drive or
-  67   1         //     float high.)
-  68   1         // B2 (Port 0 Bit 2 Latch) = HIGH (P0.2 is high. Set P0.2 to drive or
-  69   1         //     float high.)
-  70   1         // B3 (Port 0 Bit 3 Latch) = HIGH (P0.3 is high. Set P0.3 to drive or
-  71   1         //     float high.)
-  72   1         // B4 (Port 0 Bit 4 Latch) = HIGH (P0.4 is high. Set P0.4 to drive or
-  73   1         //     float high.)
-  74   1         // B5 (Port 0 Bit 5 Latch) = HIGH (P0.5 is high. Set P0.5 to drive or
-  75   1         //     float high.)
-  76   1         // B6 (Port 0 Bit 6 Latch) = HIGH (P0.6 is high. Set P0.6 to drive or
-  77   1         //     float high.)
-  78   1         // B7 (Port 0 Bit 7 Latch) = HIGH (P0.7 is high. Set P0.7 to drive or
-  79   1         //     float high.)
-  80   1         */
-  81   1        P0 = P0_B0__HIGH | P0_B1__HIGH | P0_B2__HIGH | P0_B3__HIGH | P0_B4__HIGH
-  82   1            | P0_B5__HIGH | P0_B6__HIGH | P0_B7__HIGH;
-  83   1        // [P0 - Port 0 Pin Latch]$
-  84   1      
-  85   1        // $[P0MDOUT - Port 0 Output Mode]
-  86   1        /*
-  87   1         // B0 (Port 0 Bit 0 Output Mode) = OPEN_DRAIN (P0.0 output is open-
-  88   1         //     drain.)
-  89   1         // B1 (Port 0 Bit 1 Output Mode) = OPEN_DRAIN (P0.1 output is open-
-  90   1         //     drain.)
-  91   1         // B2 (Port 0 Bit 2 Output Mode) = OPEN_DRAIN (P0.2 output is open-
-  92   1         //     drain.)
-  93   1         // B3 (Port 0 Bit 3 Output Mode) = OPEN_DRAIN (P0.3 output is open-
-  94   1         //     drain.)
-  95   1         // B4 (Port 0 Bit 4 Output Mode) = PUSH_PULL (P0.4 output is push-pull.)
-  96   1         // B5 (Port 0 Bit 5 Output Mode) = OPEN_DRAIN (P0.5 output is open-
-  97   1         //     drain.)
-  98   1         // B6 (Port 0 Bit 6 Output Mode) = OPEN_DRAIN (P0.6 output is open-
-  99   1         //     drain.)
- 100   1         // B7 (Port 0 Bit 7 Output Mode) = OPEN_DRAIN (P0.7 output is open-
- 101   1         //     drain.)
- 102   1         */
- 103   1        P0MDOUT = P0MDOUT_B0__OPEN_DRAIN | P0MDOUT_B1__OPEN_DRAIN
- 104   1            | P0MDOUT_B2__OPEN_DRAIN | P0MDOUT_B3__OPEN_DRAIN
- 105   1            | P0MDOUT_B4__PUSH_PULL | P0MDOUT_B5__OPEN_DRAIN
- 106   1            | P0MDOUT_B6__OPEN_DRAIN | P0MDOUT_B7__OPEN_DRAIN;
- 107   1        // [P0MDOUT - Port 0 Output Mode]$
- 108   1      
- 109   1        // $[P0MDIN - Port 0 Input Mode]
- 110   1        /*
- 111   1         // B0 (Port 0 Bit 0 Input Mode) = DIGITAL (P0.0 pin is configured for
- 112   1         //     digital mode.)
- 113   1         // B1 (Port 0 Bit 1 Input Mode) = DIGITAL (P0.1 pin is configured for
- 114   1         //     digital mode.)
- 115   1         // B2 (Port 0 Bit 2 Input Mode) = DIGITAL (P0.2 pin is configured for
- 116   1         //     digital mode.)
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/27/2026 09:04:41 PAGE 3   
+  55   1        // [WDTCN - Watchdog Timer Control]$
+  56   1      
+  57   1      }
+  58          
+  59          //================================================================================
+  60          // PORTS_0_enter_DefaultMode_from_RESET
+  61          //================================================================================
+  62          extern void PORTS_0_enter_DefaultMode_from_RESET(void) {
+  63   1        // $[P0 - Port 0 Pin Latch]
+  64   1        /*
+  65   1         // B0 (Port 0 Bit 0 Latch) = HIGH (P0.0 is high. Set P0.0 to drive or
+  66   1         //     float high.)
+  67   1         // B1 (Port 0 Bit 1 Latch) = HIGH (P0.1 is high. Set P0.1 to drive or
+  68   1         //     float high.)
+  69   1         // B2 (Port 0 Bit 2 Latch) = HIGH (P0.2 is high. Set P0.2 to drive or
+  70   1         //     float high.)
+  71   1         // B3 (Port 0 Bit 3 Latch) = HIGH (P0.3 is high. Set P0.3 to drive or
+  72   1         //     float high.)
+  73   1         // B4 (Port 0 Bit 4 Latch) = HIGH (P0.4 is high. Set P0.4 to drive or
+  74   1         //     float high.)
+  75   1         // B5 (Port 0 Bit 5 Latch) = HIGH (P0.5 is high. Set P0.5 to drive or
+  76   1         //     float high.)
+  77   1         // B6 (Port 0 Bit 6 Latch) = HIGH (P0.6 is high. Set P0.6 to drive or
+  78   1         //     float high.)
+  79   1         // B7 (Port 0 Bit 7 Latch) = HIGH (P0.7 is high. Set P0.7 to drive or
+  80   1         //     float high.)
+  81   1         */
+  82   1        P0 = P0_B0__HIGH | P0_B1__HIGH | P0_B2__HIGH | P0_B3__HIGH | P0_B4__HIGH
+  83   1            | P0_B5__HIGH | P0_B6__HIGH | P0_B7__HIGH;
+  84   1        // [P0 - Port 0 Pin Latch]$
+  85   1      
+  86   1        // $[P0MDOUT - Port 0 Output Mode]
+  87   1        /*
+  88   1         // B0 (Port 0 Bit 0 Output Mode) = OPEN_DRAIN (P0.0 output is open-
+  89   1         //     drain.)
+  90   1         // B1 (Port 0 Bit 1 Output Mode) = OPEN_DRAIN (P0.1 output is open-
+  91   1         //     drain.)
+  92   1         // B2 (Port 0 Bit 2 Output Mode) = OPEN_DRAIN (P0.2 output is open-
+  93   1         //     drain.)
+  94   1         // B3 (Port 0 Bit 3 Output Mode) = OPEN_DRAIN (P0.3 output is open-
+  95   1         //     drain.)
+  96   1         // B4 (Port 0 Bit 4 Output Mode) = PUSH_PULL (P0.4 output is push-pull.)
+  97   1         // B5 (Port 0 Bit 5 Output Mode) = OPEN_DRAIN (P0.5 output is open-
+  98   1         //     drain.)
+  99   1         // B6 (Port 0 Bit 6 Output Mode) = OPEN_DRAIN (P0.6 output is open-
+ 100   1         //     drain.)
+ 101   1         // B7 (Port 0 Bit 7 Output Mode) = OPEN_DRAIN (P0.7 output is open-
+ 102   1         //     drain.)
+ 103   1         */
+ 104   1        P0MDOUT = P0MDOUT_B0__OPEN_DRAIN | P0MDOUT_B1__OPEN_DRAIN
+ 105   1            | P0MDOUT_B2__OPEN_DRAIN | P0MDOUT_B3__OPEN_DRAIN
+ 106   1            | P0MDOUT_B4__PUSH_PULL | P0MDOUT_B5__OPEN_DRAIN
+ 107   1            | P0MDOUT_B6__OPEN_DRAIN | P0MDOUT_B7__OPEN_DRAIN;
+ 108   1        // [P0MDOUT - Port 0 Output Mode]$
+ 109   1      
+ 110   1        // $[P0MDIN - Port 0 Input Mode]
+ 111   1        /*
+ 112   1         // B0 (Port 0 Bit 0 Input Mode) = DIGITAL (P0.0 pin is configured for
+ 113   1         //     digital mode.)
+ 114   1         // B1 (Port 0 Bit 1 Input Mode) = DIGITAL (P0.1 pin is configured for
+ 115   1         //     digital mode.)
+ 116   1         // B2 (Port 0 Bit 2 Input Mode) = DIGITAL (P0.2 pin is configured for
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 3   
 
- 117   1         // B3 (Port 0 Bit 3 Input Mode) = DIGITAL (P0.3 pin is configured for
- 118   1         //     digital mode.)
- 119   1         // B4 (Port 0 Bit 4 Input Mode) = DIGITAL (P0.4 pin is configured for
- 120   1         //     digital mode.)
- 121   1         // B5 (Port 0 Bit 5 Input Mode) = DIGITAL (P0.5 pin is configured for
- 122   1         //     digital mode.)
- 123   1         // B6 (Port 0 Bit 6 Input Mode) = DIGITAL (P0.6 pin is configured for
- 124   1         //     digital mode.)
- 125   1         // B7 (Port 0 Bit 7 Input Mode) = DIGITAL (P0.7 pin is configured for
- 126   1         //     digital mode.)
- 127   1         */
- 128   1        P0MDIN = P0MDIN_B0__DIGITAL | P0MDIN_B1__DIGITAL | P0MDIN_B2__DIGITAL
- 129   1            | P0MDIN_B3__DIGITAL | P0MDIN_B4__DIGITAL | P0MDIN_B5__DIGITAL
- 130   1            | P0MDIN_B6__DIGITAL | P0MDIN_B7__DIGITAL;
- 131   1        // [P0MDIN - Port 0 Input Mode]$
- 132   1      
- 133   1        // $[P0SKIP - Port 0 Skip]
- 134   1        /*
- 135   1         // B0 (Port 0 Bit 0 Skip) = NOT_SKIPPED (P0.0 pin is not skipped by the
- 136   1         //     crossbar.)
- 137   1         // B1 (Port 0 Bit 1 Skip) = NOT_SKIPPED (P0.1 pin is not skipped by the
- 138   1         //     crossbar.)
- 139   1         // B2 (Port 0 Bit 2 Skip) = NOT_SKIPPED (P0.2 pin is not skipped by the
- 140   1         //     crossbar.)
- 141   1         // B3 (Port 0 Bit 3 Skip) = NOT_SKIPPED (P0.3 pin is not skipped by the
- 142   1         //     crossbar.)
- 143   1         // B4 (Port 0 Bit 4 Skip) = NOT_SKIPPED (P0.4 pin is not skipped by the
- 144   1         //     crossbar.)
- 145   1         // B5 (Port 0 Bit 5 Skip) = NOT_SKIPPED (P0.5 pin is not skipped by the
- 146   1         //     crossbar.)
- 147   1         // B6 (Port 0 Bit 6 Skip) = NOT_SKIPPED (P0.6 pin is not skipped by the
- 148   1         //     crossbar.)
- 149   1         // B7 (Port 0 Bit 7 Skip) = NOT_SKIPPED (P0.7 pin is not skipped by the
- 150   1         //     crossbar.)
- 151   1         */
- 152   1        P0SKIP = P0SKIP_B0__NOT_SKIPPED | P0SKIP_B1__NOT_SKIPPED
- 153   1            | P0SKIP_B2__NOT_SKIPPED | P0SKIP_B3__NOT_SKIPPED
- 154   1            | P0SKIP_B4__NOT_SKIPPED | P0SKIP_B5__NOT_SKIPPED
- 155   1            | P0SKIP_B6__NOT_SKIPPED | P0SKIP_B7__NOT_SKIPPED;
- 156   1        // [P0SKIP - Port 0 Skip]$
- 157   1      
- 158   1        // $[P0MASK - Port 0 Mask]
- 159   1        /*
- 160   1         // B0 (Port 0 Bit 0 Mask Value) = IGNORED (P0.0 pin logic value is
- 161   1         //     ignored and will not cause a port mismatch event.)
- 162   1         // B1 (Port 0 Bit 1 Mask Value) = IGNORED (P0.1 pin logic value is
- 163   1         //     ignored and will not cause a port mismatch event.)
- 164   1         // B2 (Port 0 Bit 2 Mask Value) = IGNORED (P0.2 pin logic value is
- 165   1         //     ignored and will not cause a port mismatch event.)
- 166   1         // B3 (Port 0 Bit 3 Mask Value) = IGNORED (P0.3 pin logic value is
- 167   1         //     ignored and will not cause a port mismatch event.)
- 168   1         // B4 (Port 0 Bit 4 Mask Value) = IGNORED (P0.4 pin logic value is
- 169   1         //     ignored and will not cause a port mismatch event.)
- 170   1         // B5 (Port 0 Bit 5 Mask Value) = IGNORED (P0.5 pin logic value is
- 171   1         //     ignored and will not cause a port mismatch event.)
- 172   1         // B6 (Port 0 Bit 6 Mask Value) = IGNORED (P0.6 pin logic value is
- 173   1         //     ignored and will not cause a port mismatch event.)
- 174   1         // B7 (Port 0 Bit 7 Mask Value) = IGNORED (P0.7 pin logic value is
- 175   1         //     ignored and will not cause a port mismatch event.)
- 176   1         */
- 177   1        P0MASK = P0MASK_B0__IGNORED | P0MASK_B1__IGNORED | P0MASK_B2__IGNORED
- 178   1            | P0MASK_B3__IGNORED | P0MASK_B4__IGNORED | P0MASK_B5__IGNORED
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/27/2026 09:04:41 PAGE 4   
+ 117   1         //     digital mode.)
+ 118   1         // B3 (Port 0 Bit 3 Input Mode) = DIGITAL (P0.3 pin is configured for
+ 119   1         //     digital mode.)
+ 120   1         // B4 (Port 0 Bit 4 Input Mode) = DIGITAL (P0.4 pin is configured for
+ 121   1         //     digital mode.)
+ 122   1         // B5 (Port 0 Bit 5 Input Mode) = DIGITAL (P0.5 pin is configured for
+ 123   1         //     digital mode.)
+ 124   1         // B6 (Port 0 Bit 6 Input Mode) = DIGITAL (P0.6 pin is configured for
+ 125   1         //     digital mode.)
+ 126   1         // B7 (Port 0 Bit 7 Input Mode) = DIGITAL (P0.7 pin is configured for
+ 127   1         //     digital mode.)
+ 128   1         */
+ 129   1        P0MDIN = P0MDIN_B0__DIGITAL | P0MDIN_B1__DIGITAL | P0MDIN_B2__DIGITAL
+ 130   1            | P0MDIN_B3__DIGITAL | P0MDIN_B4__DIGITAL | P0MDIN_B5__DIGITAL
+ 131   1            | P0MDIN_B6__DIGITAL | P0MDIN_B7__DIGITAL;
+ 132   1        // [P0MDIN - Port 0 Input Mode]$
+ 133   1      
+ 134   1        // $[P0SKIP - Port 0 Skip]
+ 135   1        /*
+ 136   1         // B0 (Port 0 Bit 0 Skip) = NOT_SKIPPED (P0.0 pin is not skipped by the
+ 137   1         //     crossbar.)
+ 138   1         // B1 (Port 0 Bit 1 Skip) = NOT_SKIPPED (P0.1 pin is not skipped by the
+ 139   1         //     crossbar.)
+ 140   1         // B2 (Port 0 Bit 2 Skip) = NOT_SKIPPED (P0.2 pin is not skipped by the
+ 141   1         //     crossbar.)
+ 142   1         // B3 (Port 0 Bit 3 Skip) = NOT_SKIPPED (P0.3 pin is not skipped by the
+ 143   1         //     crossbar.)
+ 144   1         // B4 (Port 0 Bit 4 Skip) = NOT_SKIPPED (P0.4 pin is not skipped by the
+ 145   1         //     crossbar.)
+ 146   1         // B5 (Port 0 Bit 5 Skip) = NOT_SKIPPED (P0.5 pin is not skipped by the
+ 147   1         //     crossbar.)
+ 148   1         // B6 (Port 0 Bit 6 Skip) = NOT_SKIPPED (P0.6 pin is not skipped by the
+ 149   1         //     crossbar.)
+ 150   1         // B7 (Port 0 Bit 7 Skip) = NOT_SKIPPED (P0.7 pin is not skipped by the
+ 151   1         //     crossbar.)
+ 152   1         */
+ 153   1        P0SKIP = P0SKIP_B0__NOT_SKIPPED | P0SKIP_B1__NOT_SKIPPED
+ 154   1            | P0SKIP_B2__NOT_SKIPPED | P0SKIP_B3__NOT_SKIPPED
+ 155   1            | P0SKIP_B4__NOT_SKIPPED | P0SKIP_B5__NOT_SKIPPED
+ 156   1            | P0SKIP_B6__NOT_SKIPPED | P0SKIP_B7__NOT_SKIPPED;
+ 157   1        // [P0SKIP - Port 0 Skip]$
+ 158   1      
+ 159   1        // $[P0MASK - Port 0 Mask]
+ 160   1        /*
+ 161   1         // B0 (Port 0 Bit 0 Mask Value) = IGNORED (P0.0 pin logic value is
+ 162   1         //     ignored and will not cause a port mismatch event.)
+ 163   1         // B1 (Port 0 Bit 1 Mask Value) = IGNORED (P0.1 pin logic value is
+ 164   1         //     ignored and will not cause a port mismatch event.)
+ 165   1         // B2 (Port 0 Bit 2 Mask Value) = IGNORED (P0.2 pin logic value is
+ 166   1         //     ignored and will not cause a port mismatch event.)
+ 167   1         // B3 (Port 0 Bit 3 Mask Value) = IGNORED (P0.3 pin logic value is
+ 168   1         //     ignored and will not cause a port mismatch event.)
+ 169   1         // B4 (Port 0 Bit 4 Mask Value) = IGNORED (P0.4 pin logic value is
+ 170   1         //     ignored and will not cause a port mismatch event.)
+ 171   1         // B5 (Port 0 Bit 5 Mask Value) = IGNORED (P0.5 pin logic value is
+ 172   1         //     ignored and will not cause a port mismatch event.)
+ 173   1         // B6 (Port 0 Bit 6 Mask Value) = IGNORED (P0.6 pin logic value is
+ 174   1         //     ignored and will not cause a port mismatch event.)
+ 175   1         // B7 (Port 0 Bit 7 Mask Value) = IGNORED (P0.7 pin logic value is
+ 176   1         //     ignored and will not cause a port mismatch event.)
+ 177   1         */
+ 178   1        P0MASK = P0MASK_B0__IGNORED | P0MASK_B1__IGNORED | P0MASK_B2__IGNORED
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 4   
 
- 179   1            | P0MASK_B6__IGNORED | P0MASK_B7__IGNORED;
- 180   1        // [P0MASK - Port 0 Mask]$
- 181   1      
- 182   1        // $[P0MAT - Port 0 Match]
- 183   1        /*
- 184   1         // B0 (Port 0 Bit 0 Match Value) = HIGH (P0.0 pin logic value is compared
- 185   1         //     with logic HIGH.)
- 186   1         // B1 (Port 0 Bit 1 Match Value) = HIGH (P0.1 pin logic value is compared
- 187   1         //     with logic HIGH.)
- 188   1         // B2 (Port 0 Bit 2 Match Value) = HIGH (P0.2 pin logic value is compared
- 189   1         //     with logic HIGH.)
- 190   1         // B3 (Port 0 Bit 3 Match Value) = HIGH (P0.3 pin logic value is compared
- 191   1         //     with logic HIGH.)
- 192   1         // B4 (Port 0 Bit 4 Match Value) = HIGH (P0.4 pin logic value is compared
- 193   1         //     with logic HIGH.)
- 194   1         // B5 (Port 0 Bit 5 Match Value) = HIGH (P0.5 pin logic value is compared
- 195   1         //     with logic HIGH.)
- 196   1         // B6 (Port 0 Bit 6 Match Value) = HIGH (P0.6 pin logic value is compared
- 197   1         //     with logic HIGH.)
- 198   1         // B7 (Port 0 Bit 7 Match Value) = HIGH (P0.7 pin logic value is compared
- 199   1         //     with logic HIGH.)
- 200   1         */
- 201   1        P0MAT = P0MAT_B0__HIGH | P0MAT_B1__HIGH | P0MAT_B2__HIGH | P0MAT_B3__HIGH
- 202   1            | P0MAT_B4__HIGH | P0MAT_B5__HIGH | P0MAT_B6__HIGH | P0MAT_B7__HIGH;
- 203   1        // [P0MAT - Port 0 Match]$
- 204   1      
- 205   1      }
- 206          
- 207          //================================================================================
- 208          // PORTS_1_enter_DefaultMode_from_RESET
- 209          //================================================================================
- 210          extern void PORTS_1_enter_DefaultMode_from_RESET(void) {
- 211   1        // $[P1 - Port 1 Pin Latch]
- 212   1        /*
- 213   1         // B0 (Port 1 Bit 0 Latch) = HIGH (P1.0 is high. Set P1.0 to drive or
- 214   1         //     float high.)
- 215   1         // B1 (Port 1 Bit 1 Latch) = HIGH (P1.1 is high. Set P1.1 to drive or
- 216   1         //     float high.)
- 217   1         // B2 (Port 1 Bit 2 Latch) = HIGH (P1.2 is high. Set P1.2 to drive or
- 218   1         //     float high.)
- 219   1         // B3 (Port 1 Bit 3 Latch) = HIGH (P1.3 is high. Set P1.3 to drive or
- 220   1         //     float high.)
- 221   1         // B4 (Port 1 Bit 4 Latch) = HIGH (P1.4 is high. Set P1.4 to drive or
- 222   1         //     float high.)
- 223   1         // B5 (Port 1 Bit 5 Latch) = HIGH (P1.5 is high. Set P1.5 to drive or
- 224   1         //     float high.)
- 225   1         // B6 (Port 1 Bit 6 Latch) = HIGH (P1.6 is high. Set P1.6 to drive or
- 226   1         //     float high.)
- 227   1         // B7 (Port 1 Bit 7 Latch) = HIGH (P1.7 is high. Set P1.7 to drive or
- 228   1         //     float high.)
- 229   1         */
- 230   1        P1 = P1_B0__HIGH | P1_B1__HIGH | P1_B2__HIGH | P1_B3__HIGH | P1_B4__HIGH
- 231   1            | P1_B5__HIGH | P1_B6__HIGH | P1_B7__HIGH;
- 232   1        // [P1 - Port 1 Pin Latch]$
- 233   1      
- 234   1        // $[P1MDOUT - Port 1 Output Mode]
- 235   1        /*
- 236   1         // B0 (Port 1 Bit 0 Output Mode) = OPEN_DRAIN (P1.0 output is open-
- 237   1         //     drain.)
- 238   1         // B1 (Port 1 Bit 1 Output Mode) = OPEN_DRAIN (P1.1 output is open-
- 239   1         //     drain.)
- 240   1         // B2 (Port 1 Bit 2 Output Mode) = OPEN_DRAIN (P1.2 output is open-
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/27/2026 09:04:41 PAGE 5   
+ 179   1            | P0MASK_B3__IGNORED | P0MASK_B4__IGNORED | P0MASK_B5__IGNORED
+ 180   1            | P0MASK_B6__IGNORED | P0MASK_B7__IGNORED;
+ 181   1        // [P0MASK - Port 0 Mask]$
+ 182   1      
+ 183   1        // $[P0MAT - Port 0 Match]
+ 184   1        /*
+ 185   1         // B0 (Port 0 Bit 0 Match Value) = HIGH (P0.0 pin logic value is compared
+ 186   1         //     with logic HIGH.)
+ 187   1         // B1 (Port 0 Bit 1 Match Value) = HIGH (P0.1 pin logic value is compared
+ 188   1         //     with logic HIGH.)
+ 189   1         // B2 (Port 0 Bit 2 Match Value) = HIGH (P0.2 pin logic value is compared
+ 190   1         //     with logic HIGH.)
+ 191   1         // B3 (Port 0 Bit 3 Match Value) = HIGH (P0.3 pin logic value is compared
+ 192   1         //     with logic HIGH.)
+ 193   1         // B4 (Port 0 Bit 4 Match Value) = HIGH (P0.4 pin logic value is compared
+ 194   1         //     with logic HIGH.)
+ 195   1         // B5 (Port 0 Bit 5 Match Value) = HIGH (P0.5 pin logic value is compared
+ 196   1         //     with logic HIGH.)
+ 197   1         // B6 (Port 0 Bit 6 Match Value) = HIGH (P0.6 pin logic value is compared
+ 198   1         //     with logic HIGH.)
+ 199   1         // B7 (Port 0 Bit 7 Match Value) = HIGH (P0.7 pin logic value is compared
+ 200   1         //     with logic HIGH.)
+ 201   1         */
+ 202   1        P0MAT = P0MAT_B0__HIGH | P0MAT_B1__HIGH | P0MAT_B2__HIGH | P0MAT_B3__HIGH
+ 203   1            | P0MAT_B4__HIGH | P0MAT_B5__HIGH | P0MAT_B6__HIGH | P0MAT_B7__HIGH;
+ 204   1        // [P0MAT - Port 0 Match]$
+ 205   1      
+ 206   1      }
+ 207          
+ 208          //================================================================================
+ 209          // PORTS_1_enter_DefaultMode_from_RESET
+ 210          //================================================================================
+ 211          extern void PORTS_1_enter_DefaultMode_from_RESET(void) {
+ 212   1        // $[P1 - Port 1 Pin Latch]
+ 213   1        /*
+ 214   1         // B0 (Port 1 Bit 0 Latch) = HIGH (P1.0 is high. Set P1.0 to drive or
+ 215   1         //     float high.)
+ 216   1         // B1 (Port 1 Bit 1 Latch) = HIGH (P1.1 is high. Set P1.1 to drive or
+ 217   1         //     float high.)
+ 218   1         // B2 (Port 1 Bit 2 Latch) = HIGH (P1.2 is high. Set P1.2 to drive or
+ 219   1         //     float high.)
+ 220   1         // B3 (Port 1 Bit 3 Latch) = HIGH (P1.3 is high. Set P1.3 to drive or
+ 221   1         //     float high.)
+ 222   1         // B4 (Port 1 Bit 4 Latch) = HIGH (P1.4 is high. Set P1.4 to drive or
+ 223   1         //     float high.)
+ 224   1         // B5 (Port 1 Bit 5 Latch) = HIGH (P1.5 is high. Set P1.5 to drive or
+ 225   1         //     float high.)
+ 226   1         // B6 (Port 1 Bit 6 Latch) = HIGH (P1.6 is high. Set P1.6 to drive or
+ 227   1         //     float high.)
+ 228   1         // B7 (Port 1 Bit 7 Latch) = HIGH (P1.7 is high. Set P1.7 to drive or
+ 229   1         //     float high.)
+ 230   1         */
+ 231   1        P1 = P1_B0__HIGH | P1_B1__HIGH | P1_B2__HIGH | P1_B3__HIGH | P1_B4__HIGH
+ 232   1            | P1_B5__HIGH | P1_B6__HIGH | P1_B7__HIGH;
+ 233   1        // [P1 - Port 1 Pin Latch]$
+ 234   1      
+ 235   1        // $[P1MDOUT - Port 1 Output Mode]
+ 236   1        /*
+ 237   1         // B0 (Port 1 Bit 0 Output Mode) = OPEN_DRAIN (P1.0 output is open-
+ 238   1         //     drain.)
+ 239   1         // B1 (Port 1 Bit 1 Output Mode) = OPEN_DRAIN (P1.1 output is open-
+ 240   1         //     drain.)
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 5   
 
- 241   1         //     drain.)
- 242   1         // B3 (Port 1 Bit 3 Output Mode) = OPEN_DRAIN (P1.3 output is open-
- 243   1         //     drain.)
- 244   1         // B4 (Port 1 Bit 4 Output Mode) = OPEN_DRAIN (P1.4 output is open-
- 245   1         //     drain.)
- 246   1         // B5 (Port 1 Bit 5 Output Mode) = OPEN_DRAIN (P1.5 output is open-
- 247   1         //     drain.)
- 248   1         // B6 (Port 1 Bit 6 Output Mode) = OPEN_DRAIN (P1.6 output is open-
- 249   1         //     drain.)
- 250   1         // B7 (Port 1 Bit 7 Output Mode) = OPEN_DRAIN (P1.7 output is open-
- 251   1         //     drain.)
- 252   1         */
- 253   1        P1MDOUT = P1MDOUT_B0__OPEN_DRAIN | P1MDOUT_B1__OPEN_DRAIN
- 254   1            | P1MDOUT_B2__OPEN_DRAIN | P1MDOUT_B3__OPEN_DRAIN
- 255   1            | P1MDOUT_B4__OPEN_DRAIN | P1MDOUT_B5__OPEN_DRAIN
- 256   1            | P1MDOUT_B6__OPEN_DRAIN | P1MDOUT_B7__OPEN_DRAIN;
- 257   1        // [P1MDOUT - Port 1 Output Mode]$
- 258   1      
- 259   1        // $[P1MDIN - Port 1 Input Mode]
- 260   1        /*
- 261   1         // B0 (Port 1 Bit 0 Input Mode) = DIGITAL (P1.0 pin is configured for
- 262   1         //     digital mode.)
- 263   1         // B1 (Port 1 Bit 1 Input Mode) = DIGITAL (P1.1 pin is configured for
- 264   1         //     digital mode.)
- 265   1         // B2 (Port 1 Bit 2 Input Mode) = DIGITAL (P1.2 pin is configured for
- 266   1         //     digital mode.)
- 267   1         // B3 (Port 1 Bit 3 Input Mode) = DIGITAL (P1.3 pin is configured for
- 268   1         //     digital mode.)
- 269   1         // B4 (Port 1 Bit 4 Input Mode) = DIGITAL (P1.4 pin is configured for
- 270   1         //     digital mode.)
- 271   1         // B5 (Port 1 Bit 5 Input Mode) = DIGITAL (P1.5 pin is configured for
- 272   1         //     digital mode.)
- 273   1         // B6 (Port 1 Bit 6 Input Mode) = DIGITAL (P1.6 pin is configured for
- 274   1         //     digital mode.)
- 275   1         // B7 (Port 1 Bit 7 Input Mode) = ANALOG (P1.7 pin is configured for
- 276   1         //     analog mode.)
- 277   1         */
- 278   1        P1MDIN = P1MDIN_B0__DIGITAL | P1MDIN_B1__DIGITAL | P1MDIN_B2__DIGITAL
- 279   1            | P1MDIN_B3__DIGITAL | P1MDIN_B4__DIGITAL | P1MDIN_B5__DIGITAL
- 280   1            | P1MDIN_B6__DIGITAL | P1MDIN_B7__ANALOG;
- 281   1        // [P1MDIN - Port 1 Input Mode]$
- 282   1      
- 283   1        // $[P1SKIP - Port 1 Skip]
- 284   1        /*
- 285   1         // B0 (Port 1 Bit 0 Skip) = NOT_SKIPPED (P1.0 pin is not skipped by the
- 286   1         //     crossbar.)
- 287   1         // B1 (Port 1 Bit 1 Skip) = NOT_SKIPPED (P1.1 pin is not skipped by the
- 288   1         //     crossbar.)
- 289   1         // B2 (Port 1 Bit 2 Skip) = NOT_SKIPPED (P1.2 pin is not skipped by the
- 290   1         //     crossbar.)
- 291   1         // B3 (Port 1 Bit 3 Skip) = NOT_SKIPPED (P1.3 pin is not skipped by the
- 292   1         //     crossbar.)
- 293   1         // B4 (Port 1 Bit 4 Skip) = NOT_SKIPPED (P1.4 pin is not skipped by the
- 294   1         //     crossbar.)
- 295   1         // B5 (Port 1 Bit 5 Skip) = NOT_SKIPPED (P1.5 pin is not skipped by the
- 296   1         //     crossbar.)
- 297   1         // B6 (Port 1 Bit 6 Skip) = NOT_SKIPPED (P1.6 pin is not skipped by the
- 298   1         //     crossbar.)
- 299   1         // B7 (Port 1 Bit 7 Skip) = SKIPPED (P1.7 pin is skipped by the
- 300   1         //     crossbar.)
- 301   1         */
- 302   1        P1SKIP = P1SKIP_B0__NOT_SKIPPED | P1SKIP_B1__NOT_SKIPPED
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/27/2026 09:04:41 PAGE 6   
+ 241   1         // B2 (Port 1 Bit 2 Output Mode) = OPEN_DRAIN (P1.2 output is open-
+ 242   1         //     drain.)
+ 243   1         // B3 (Port 1 Bit 3 Output Mode) = OPEN_DRAIN (P1.3 output is open-
+ 244   1         //     drain.)
+ 245   1         // B4 (Port 1 Bit 4 Output Mode) = OPEN_DRAIN (P1.4 output is open-
+ 246   1         //     drain.)
+ 247   1         // B5 (Port 1 Bit 5 Output Mode) = OPEN_DRAIN (P1.5 output is open-
+ 248   1         //     drain.)
+ 249   1         // B6 (Port 1 Bit 6 Output Mode) = OPEN_DRAIN (P1.6 output is open-
+ 250   1         //     drain.)
+ 251   1         // B7 (Port 1 Bit 7 Output Mode) = OPEN_DRAIN (P1.7 output is open-
+ 252   1         //     drain.)
+ 253   1         */
+ 254   1        P1MDOUT = P1MDOUT_B0__OPEN_DRAIN | P1MDOUT_B1__OPEN_DRAIN
+ 255   1            | P1MDOUT_B2__OPEN_DRAIN | P1MDOUT_B3__OPEN_DRAIN
+ 256   1            | P1MDOUT_B4__OPEN_DRAIN | P1MDOUT_B5__OPEN_DRAIN
+ 257   1            | P1MDOUT_B6__OPEN_DRAIN | P1MDOUT_B7__OPEN_DRAIN;
+ 258   1        // [P1MDOUT - Port 1 Output Mode]$
+ 259   1      
+ 260   1        // $[P1MDIN - Port 1 Input Mode]
+ 261   1        /*
+ 262   1         // B0 (Port 1 Bit 0 Input Mode) = DIGITAL (P1.0 pin is configured for
+ 263   1         //     digital mode.)
+ 264   1         // B1 (Port 1 Bit 1 Input Mode) = DIGITAL (P1.1 pin is configured for
+ 265   1         //     digital mode.)
+ 266   1         // B2 (Port 1 Bit 2 Input Mode) = DIGITAL (P1.2 pin is configured for
+ 267   1         //     digital mode.)
+ 268   1         // B3 (Port 1 Bit 3 Input Mode) = DIGITAL (P1.3 pin is configured for
+ 269   1         //     digital mode.)
+ 270   1         // B4 (Port 1 Bit 4 Input Mode) = DIGITAL (P1.4 pin is configured for
+ 271   1         //     digital mode.)
+ 272   1         // B5 (Port 1 Bit 5 Input Mode) = DIGITAL (P1.5 pin is configured for
+ 273   1         //     digital mode.)
+ 274   1         // B6 (Port 1 Bit 6 Input Mode) = DIGITAL (P1.6 pin is configured for
+ 275   1         //     digital mode.)
+ 276   1         // B7 (Port 1 Bit 7 Input Mode) = ANALOG (P1.7 pin is configured for
+ 277   1         //     analog mode.)
+ 278   1         */
+ 279   1        P1MDIN = P1MDIN_B0__DIGITAL | P1MDIN_B1__DIGITAL | P1MDIN_B2__DIGITAL
+ 280   1            | P1MDIN_B3__DIGITAL | P1MDIN_B4__DIGITAL | P1MDIN_B5__DIGITAL
+ 281   1            | P1MDIN_B6__DIGITAL | P1MDIN_B7__ANALOG;
+ 282   1        // [P1MDIN - Port 1 Input Mode]$
+ 283   1      
+ 284   1        // $[P1SKIP - Port 1 Skip]
+ 285   1        /*
+ 286   1         // B0 (Port 1 Bit 0 Skip) = NOT_SKIPPED (P1.0 pin is not skipped by the
+ 287   1         //     crossbar.)
+ 288   1         // B1 (Port 1 Bit 1 Skip) = NOT_SKIPPED (P1.1 pin is not skipped by the
+ 289   1         //     crossbar.)
+ 290   1         // B2 (Port 1 Bit 2 Skip) = NOT_SKIPPED (P1.2 pin is not skipped by the
+ 291   1         //     crossbar.)
+ 292   1         // B3 (Port 1 Bit 3 Skip) = NOT_SKIPPED (P1.3 pin is not skipped by the
+ 293   1         //     crossbar.)
+ 294   1         // B4 (Port 1 Bit 4 Skip) = NOT_SKIPPED (P1.4 pin is not skipped by the
+ 295   1         //     crossbar.)
+ 296   1         // B5 (Port 1 Bit 5 Skip) = NOT_SKIPPED (P1.5 pin is not skipped by the
+ 297   1         //     crossbar.)
+ 298   1         // B6 (Port 1 Bit 6 Skip) = NOT_SKIPPED (P1.6 pin is not skipped by the
+ 299   1         //     crossbar.)
+ 300   1         // B7 (Port 1 Bit 7 Skip) = SKIPPED (P1.7 pin is skipped by the
+ 301   1         //     crossbar.)
+ 302   1         */
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 6   
 
- 303   1            | P1SKIP_B2__NOT_SKIPPED | P1SKIP_B3__NOT_SKIPPED
- 304   1            | P1SKIP_B4__NOT_SKIPPED | P1SKIP_B5__NOT_SKIPPED
- 305   1            | P1SKIP_B6__NOT_SKIPPED | P1SKIP_B7__SKIPPED;
- 306   1        // [P1SKIP - Port 1 Skip]$
- 307   1      
- 308   1        // $[P1MASK - Port 1 Mask]
- 309   1        /*
- 310   1         // B0 (Port 1 Bit 0 Mask Value) = IGNORED (P1.0 pin logic value is
- 311   1         //     ignored and will not cause a port mismatch event.)
- 312   1         // B1 (Port 1 Bit 1 Mask Value) = IGNORED (P1.1 pin logic value is
- 313   1         //     ignored and will not cause a port mismatch event.)
- 314   1         // B2 (Port 1 Bit 2 Mask Value) = IGNORED (P1.2 pin logic value is
- 315   1         //     ignored and will not cause a port mismatch event.)
- 316   1         // B3 (Port 1 Bit 3 Mask Value) = IGNORED (P1.3 pin logic value is
- 317   1         //     ignored and will not cause a port mismatch event.)
- 318   1         // B4 (Port 1 Bit 4 Mask Value) = IGNORED (P1.4 pin logic value is
- 319   1         //     ignored and will not cause a port mismatch event.)
- 320   1         // B5 (Port 1 Bit 5 Mask Value) = IGNORED (P1.5 pin logic value is
- 321   1         //     ignored and will not cause a port mismatch event.)
- 322   1         // B6 (Port 1 Bit 6 Mask Value) = IGNORED (P1.6 pin logic value is
- 323   1         //     ignored and will not cause a port mismatch event.)
- 324   1         // B7 (Port 1 Bit 7 Mask Value) = IGNORED (P1.7 pin logic value is
- 325   1         //     ignored and will not cause a port mismatch event.)
- 326   1         */
- 327   1        P1MASK = P1MASK_B0__IGNORED | P1MASK_B1__IGNORED | P1MASK_B2__IGNORED
- 328   1            | P1MASK_B3__IGNORED | P1MASK_B4__IGNORED | P1MASK_B5__IGNORED
- 329   1            | P1MASK_B6__IGNORED | P1MASK_B7__IGNORED;
- 330   1        // [P1MASK - Port 1 Mask]$
- 331   1      
- 332   1        // $[P1MAT - Port 1 Match]
- 333   1        /*
- 334   1         // B0 (Port 1 Bit 0 Match Value) = HIGH (P1.0 pin logic value is compared
- 335   1         //     with logic HIGH.)
- 336   1         // B1 (Port 1 Bit 1 Match Value) = HIGH (P1.1 pin logic value is compared
- 337   1         //     with logic HIGH.)
- 338   1         // B2 (Port 1 Bit 2 Match Value) = HIGH (P1.2 pin logic value is compared
- 339   1         //     with logic HIGH.)
- 340   1         // B3 (Port 1 Bit 3 Match Value) = HIGH (P1.3 pin logic value is compared
- 341   1         //     with logic HIGH.)
- 342   1         // B4 (Port 1 Bit 4 Match Value) = HIGH (P1.4 pin logic value is compared
- 343   1         //     with logic HIGH.)
- 344   1         // B5 (Port 1 Bit 5 Match Value) = HIGH (P1.5 pin logic value is compared
- 345   1         //     with logic HIGH.)
- 346   1         // B6 (Port 1 Bit 6 Match Value) = HIGH (P1.6 pin logic value is compared
- 347   1         //     with logic HIGH.)
- 348   1         // B7 (Port 1 Bit 7 Match Value) = HIGH (P1.7 pin logic value is compared
- 349   1         //     with logic HIGH.)
- 350   1         */
- 351   1        P1MAT = P1MAT_B0__HIGH | P1MAT_B1__HIGH | P1MAT_B2__HIGH | P1MAT_B3__HIGH
- 352   1            | P1MAT_B4__HIGH | P1MAT_B5__HIGH | P1MAT_B6__HIGH | P1MAT_B7__HIGH;
- 353   1        // [P1MAT - Port 1 Match]$
- 354   1      
- 355   1      }
- 356          
- 357          //================================================================================
- 358          // PORTS_2_enter_DefaultMode_from_RESET
- 359          //================================================================================
- 360          extern void PORTS_2_enter_DefaultMode_from_RESET(void) {
- 361   1        // $[P2 - Port 2 Pin Latch]
- 362   1        // [P2 - Port 2 Pin Latch]$
- 363   1      
- 364   1        // $[P2MDOUT - Port 2 Output Mode]
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/27/2026 09:04:41 PAGE 7   
+ 303   1        P1SKIP = P1SKIP_B0__NOT_SKIPPED | P1SKIP_B1__NOT_SKIPPED
+ 304   1            | P1SKIP_B2__NOT_SKIPPED | P1SKIP_B3__NOT_SKIPPED
+ 305   1            | P1SKIP_B4__NOT_SKIPPED | P1SKIP_B5__NOT_SKIPPED
+ 306   1            | P1SKIP_B6__NOT_SKIPPED | P1SKIP_B7__SKIPPED;
+ 307   1        // [P1SKIP - Port 1 Skip]$
+ 308   1      
+ 309   1        // $[P1MASK - Port 1 Mask]
+ 310   1        /*
+ 311   1         // B0 (Port 1 Bit 0 Mask Value) = IGNORED (P1.0 pin logic value is
+ 312   1         //     ignored and will not cause a port mismatch event.)
+ 313   1         // B1 (Port 1 Bit 1 Mask Value) = IGNORED (P1.1 pin logic value is
+ 314   1         //     ignored and will not cause a port mismatch event.)
+ 315   1         // B2 (Port 1 Bit 2 Mask Value) = IGNORED (P1.2 pin logic value is
+ 316   1         //     ignored and will not cause a port mismatch event.)
+ 317   1         // B3 (Port 1 Bit 3 Mask Value) = IGNORED (P1.3 pin logic value is
+ 318   1         //     ignored and will not cause a port mismatch event.)
+ 319   1         // B4 (Port 1 Bit 4 Mask Value) = IGNORED (P1.4 pin logic value is
+ 320   1         //     ignored and will not cause a port mismatch event.)
+ 321   1         // B5 (Port 1 Bit 5 Mask Value) = IGNORED (P1.5 pin logic value is
+ 322   1         //     ignored and will not cause a port mismatch event.)
+ 323   1         // B6 (Port 1 Bit 6 Mask Value) = IGNORED (P1.6 pin logic value is
+ 324   1         //     ignored and will not cause a port mismatch event.)
+ 325   1         // B7 (Port 1 Bit 7 Mask Value) = IGNORED (P1.7 pin logic value is
+ 326   1         //     ignored and will not cause a port mismatch event.)
+ 327   1         */
+ 328   1        P1MASK = P1MASK_B0__IGNORED | P1MASK_B1__IGNORED | P1MASK_B2__IGNORED
+ 329   1            | P1MASK_B3__IGNORED | P1MASK_B4__IGNORED | P1MASK_B5__IGNORED
+ 330   1            | P1MASK_B6__IGNORED | P1MASK_B7__IGNORED;
+ 331   1        // [P1MASK - Port 1 Mask]$
+ 332   1      
+ 333   1        // $[P1MAT - Port 1 Match]
+ 334   1        /*
+ 335   1         // B0 (Port 1 Bit 0 Match Value) = HIGH (P1.0 pin logic value is compared
+ 336   1         //     with logic HIGH.)
+ 337   1         // B1 (Port 1 Bit 1 Match Value) = HIGH (P1.1 pin logic value is compared
+ 338   1         //     with logic HIGH.)
+ 339   1         // B2 (Port 1 Bit 2 Match Value) = HIGH (P1.2 pin logic value is compared
+ 340   1         //     with logic HIGH.)
+ 341   1         // B3 (Port 1 Bit 3 Match Value) = HIGH (P1.3 pin logic value is compared
+ 342   1         //     with logic HIGH.)
+ 343   1         // B4 (Port 1 Bit 4 Match Value) = HIGH (P1.4 pin logic value is compared
+ 344   1         //     with logic HIGH.)
+ 345   1         // B5 (Port 1 Bit 5 Match Value) = HIGH (P1.5 pin logic value is compared
+ 346   1         //     with logic HIGH.)
+ 347   1         // B6 (Port 1 Bit 6 Match Value) = HIGH (P1.6 pin logic value is compared
+ 348   1         //     with logic HIGH.)
+ 349   1         // B7 (Port 1 Bit 7 Match Value) = HIGH (P1.7 pin logic value is compared
+ 350   1         //     with logic HIGH.)
+ 351   1         */
+ 352   1        P1MAT = P1MAT_B0__HIGH | P1MAT_B1__HIGH | P1MAT_B2__HIGH | P1MAT_B3__HIGH
+ 353   1            | P1MAT_B4__HIGH | P1MAT_B5__HIGH | P1MAT_B6__HIGH | P1MAT_B7__HIGH;
+ 354   1        // [P1MAT - Port 1 Match]$
+ 355   1      
+ 356   1      }
+ 357          
+ 358          //================================================================================
+ 359          // PORTS_2_enter_DefaultMode_from_RESET
+ 360          //================================================================================
+ 361          extern void PORTS_2_enter_DefaultMode_from_RESET(void) {
+ 362   1        // $[P2 - Port 2 Pin Latch]
+ 363   1        // [P2 - Port 2 Pin Latch]$
+ 364   1      
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 7   
 
- 365   1        /*
- 366   1         // B0 (Port 2 Bit 0 Output Mode) = PUSH_PULL (P2.0 output is push-pull.)
- 367   1         // B1 (Port 2 Bit 1 Output Mode) = OPEN_DRAIN (P2.1 output is open-
- 368   1         //     drain.)
- 369   1         // B2 (Port 2 Bit 2 Output Mode) = OPEN_DRAIN (P2.2 output is open-
- 370   1         //     drain.)
- 371   1         // B3 (Port 2 Bit 3 Output Mode) = PUSH_PULL (P2.3 output is push-pull.)
- 372   1         // B4 (Port 2 Bit 4 Output Mode) = OPEN_DRAIN (P2.4 output is open-
- 373   1         //     drain.)
- 374   1         // B5 (Port 2 Bit 5 Output Mode) = OPEN_DRAIN (P2.5 output is open-
- 375   1         //     drain.)
- 376   1         // B6 (Port 2 Bit 6 Output Mode) = OPEN_DRAIN (P2.6 output is open-
- 377   1         //     drain.)
- 378   1         */
- 379   1        P2MDOUT = P2MDOUT_B0__PUSH_PULL | P2MDOUT_B1__OPEN_DRAIN
- 380   1            | P2MDOUT_B2__OPEN_DRAIN | P2MDOUT_B3__PUSH_PULL
- 381   1            | P2MDOUT_B4__OPEN_DRAIN | P2MDOUT_B5__OPEN_DRAIN
- 382   1            | P2MDOUT_B6__OPEN_DRAIN;
- 383   1        // [P2MDOUT - Port 2 Output Mode]$
- 384   1      
- 385   1        // $[P2MDIN - Port 2 Input Mode]
- 386   1        // [P2MDIN - Port 2 Input Mode]$
- 387   1      
- 388   1        // $[P2SKIP - Port 2 Skip]
- 389   1        /*
- 390   1         // B0 (Port 2 Bit 0 Skip) = SKIPPED (P2.0 pin is skipped by the
- 391   1         //     crossbar.)
- 392   1         // B1 (Port 2 Bit 1 Skip) = NOT_SKIPPED (P2.1 pin is not skipped by the
- 393   1         //     crossbar.)
- 394   1         // B2 (Port 2 Bit 2 Skip) = NOT_SKIPPED (P2.2 pin is not skipped by the
- 395   1         //     crossbar.)
- 396   1         // B3 (Port 2 Bit 3 Skip) = SKIPPED (P2.3 pin is skipped by the
- 397   1         //     crossbar.)
- 398   1         */
- 399   1        SFRPAGE = 0x20;
- 400   1        P2SKIP = P2SKIP_B0__SKIPPED | P2SKIP_B1__NOT_SKIPPED
- 401   1            | P2SKIP_B2__NOT_SKIPPED | P2SKIP_B3__SKIPPED;
- 402   1        // [P2SKIP - Port 2 Skip]$
- 403   1      
- 404   1        // $[P2MASK - Port 2 Mask]
- 405   1        // [P2MASK - Port 2 Mask]$
- 406   1      
- 407   1        // $[P2MAT - Port 2 Match]
- 408   1        // [P2MAT - Port 2 Match]$
- 409   1      
- 410   1      }
- 411          
- 412          //================================================================================
- 413          // PBCFG_0_enter_DefaultMode_from_RESET
- 414          //================================================================================
- 415          extern void PBCFG_0_enter_DefaultMode_from_RESET(void) {
- 416   1        // $[XBR2 - Port I/O Crossbar 2]
- 417   1        /*
- 418   1         // WEAKPUD (Port I/O Weak Pullup Disable) = PULL_UPS_ENABLED (Weak
- 419   1         //     Pullups enabled (except for Ports whose I/O are configured for analog
- 420   1         //     mode).)
- 421   1         // XBARE (Crossbar Enable) = ENABLED (Crossbar enabled.)
- 422   1         // URT1E (UART1 I/O Enable) = DISABLED (UART1 I/O unavailable at Port
- 423   1         //     pin.)
- 424   1         // URT1RTSE (UART1 RTS Output Enable) = DISABLED (UART1 RTS1 unavailable
- 425   1         //     at Port pin.)
- 426   1         // URT1CTSE (UART1 CTS Input Enable) = DISABLED (UART1 CTS1 unavailable
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/27/2026 09:04:41 PAGE 8   
+ 365   1        // $[P2MDOUT - Port 2 Output Mode]
+ 366   1        /*
+ 367   1         // B0 (Port 2 Bit 0 Output Mode) = PUSH_PULL (P2.0 output is push-pull.)
+ 368   1         // B1 (Port 2 Bit 1 Output Mode) = OPEN_DRAIN (P2.1 output is open-
+ 369   1         //     drain.)
+ 370   1         // B2 (Port 2 Bit 2 Output Mode) = OPEN_DRAIN (P2.2 output is open-
+ 371   1         //     drain.)
+ 372   1         // B3 (Port 2 Bit 3 Output Mode) = PUSH_PULL (P2.3 output is push-pull.)
+ 373   1         // B4 (Port 2 Bit 4 Output Mode) = OPEN_DRAIN (P2.4 output is open-
+ 374   1         //     drain.)
+ 375   1         // B5 (Port 2 Bit 5 Output Mode) = OPEN_DRAIN (P2.5 output is open-
+ 376   1         //     drain.)
+ 377   1         // B6 (Port 2 Bit 6 Output Mode) = OPEN_DRAIN (P2.6 output is open-
+ 378   1         //     drain.)
+ 379   1         */
+ 380   1        P2MDOUT = P2MDOUT_B0__PUSH_PULL | P2MDOUT_B1__OPEN_DRAIN
+ 381   1            | P2MDOUT_B2__OPEN_DRAIN | P2MDOUT_B3__PUSH_PULL
+ 382   1            | P2MDOUT_B4__OPEN_DRAIN | P2MDOUT_B5__OPEN_DRAIN
+ 383   1            | P2MDOUT_B6__OPEN_DRAIN;
+ 384   1        // [P2MDOUT - Port 2 Output Mode]$
+ 385   1      
+ 386   1        // $[P2MDIN - Port 2 Input Mode]
+ 387   1        // [P2MDIN - Port 2 Input Mode]$
+ 388   1      
+ 389   1        // $[P2SKIP - Port 2 Skip]
+ 390   1        /*
+ 391   1         // B0 (Port 2 Bit 0 Skip) = SKIPPED (P2.0 pin is skipped by the
+ 392   1         //     crossbar.)
+ 393   1         // B1 (Port 2 Bit 1 Skip) = NOT_SKIPPED (P2.1 pin is not skipped by the
+ 394   1         //     crossbar.)
+ 395   1         // B2 (Port 2 Bit 2 Skip) = NOT_SKIPPED (P2.2 pin is not skipped by the
+ 396   1         //     crossbar.)
+ 397   1         // B3 (Port 2 Bit 3 Skip) = SKIPPED (P2.3 pin is skipped by the
+ 398   1         //     crossbar.)
+ 399   1         */
+ 400   1        SFRPAGE = 0x20;
+ 401   1        P2SKIP = P2SKIP_B0__SKIPPED | P2SKIP_B1__NOT_SKIPPED
+ 402   1            | P2SKIP_B2__NOT_SKIPPED | P2SKIP_B3__SKIPPED;
+ 403   1        // [P2SKIP - Port 2 Skip]$
+ 404   1      
+ 405   1        // $[P2MASK - Port 2 Mask]
+ 406   1        // [P2MASK - Port 2 Mask]$
+ 407   1      
+ 408   1        // $[P2MAT - Port 2 Match]
+ 409   1        // [P2MAT - Port 2 Match]$
+ 410   1      
+ 411   1      }
+ 412          
+ 413          //================================================================================
+ 414          // PBCFG_0_enter_DefaultMode_from_RESET
+ 415          //================================================================================
+ 416          extern void PBCFG_0_enter_DefaultMode_from_RESET(void) {
+ 417   1        // $[XBR2 - Port I/O Crossbar 2]
+ 418   1        /*
+ 419   1         // WEAKPUD (Port I/O Weak Pullup Disable) = PULL_UPS_ENABLED (Weak
+ 420   1         //     Pullups enabled (except for Ports whose I/O are configured for analog
+ 421   1         //     mode).)
+ 422   1         // XBARE (Crossbar Enable) = ENABLED (Crossbar enabled.)
+ 423   1         // URT1E (UART1 I/O Enable) = DISABLED (UART1 I/O unavailable at Port
+ 424   1         //     pin.)
+ 425   1         // URT1RTSE (UART1 RTS Output Enable) = DISABLED (UART1 RTS1 unavailable
+ 426   1         //     at Port pin.)
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 8   
 
- 427   1         //     at Port pin.)
- 428   1         */
- 429   1        SFRPAGE = 0x00;
- 430   1        XBR2 = XBR2_WEAKPUD__PULL_UPS_ENABLED | XBR2_XBARE__ENABLED
- 431   1            | XBR2_URT1E__DISABLED | XBR2_URT1RTSE__DISABLED
- 432   1            | XBR2_URT1CTSE__DISABLED;
- 433   1        // [XBR2 - Port I/O Crossbar 2]$
- 434   1      
- 435   1        // $[PRTDRV - Port Drive Strength]
- 436   1        // [PRTDRV - Port Drive Strength]$
- 437   1      
- 438   1        // $[XBR0 - Port I/O Crossbar 0]
- 439   1        /*
- 440   1         // URT0E (UART0 I/O Enable) = ENABLED (UART0 TX0, RX0 routed to Port pins
- 441   1         //     P0.4 and P0.5.)
- 442   1         // SPI0E (SPI I/O Enable) = DISABLED (SPI I/O unavailable at Port pins.)
- 443   1         // SMB0E (SMB0 I/O Enable) = DISABLED (SMBus 0 I/O unavailable at Port
- 444   1         //     pins.)
- 445   1         // CP0E (Comparator0 Output Enable) = DISABLED (CP0 unavailable at Port
- 446   1         //     pin.)
- 447   1         // CP0AE (Comparator0 Asynchronous Output Enable) = DISABLED
- 448   1         //     (Asynchronous CP0 unavailable at Port pin.)
- 449   1         // CP1E (Comparator1 Output Enable) = DISABLED (CP1 unavailable at Port
- 450   1         //     pin.)
- 451   1         // CP1AE (Comparator1 Asynchronous Output Enable) = DISABLED
- 452   1         //     (Asynchronous CP1 unavailable at Port pin.)
- 453   1         // SYSCKE (SYSCLK Output Enable) = DISABLED (SYSCLK unavailable at Port
- 454   1         //     pin.)
- 455   1         */
- 456   1        XBR0 = XBR0_URT0E__ENABLED | XBR0_SPI0E__DISABLED | XBR0_SMB0E__DISABLED
- 457   1            | XBR0_CP0E__DISABLED | XBR0_CP0AE__DISABLED | XBR0_CP1E__DISABLED
- 458   1            | XBR0_CP1AE__DISABLED | XBR0_SYSCKE__DISABLED;
- 459   1        // [XBR0 - Port I/O Crossbar 0]$
- 460   1      
- 461   1        // $[XBR1 - Port I/O Crossbar 1]
- 462   1        // [XBR1 - Port I/O Crossbar 1]$
- 463   1      
- 464   1      }
- 465          
- 466          //================================================================================
- 467          // CIP51_0_enter_DefaultMode_from_RESET
- 468          //================================================================================
- 469          extern void CIP51_0_enter_DefaultMode_from_RESET(void) {
- 470   1        // $[PFE0CN - Prefetch Engine Control]
- 471   1        // [PFE0CN - Prefetch Engine Control]$
- 472   1      
- 473   1      }
- 474          
- 475          //================================================================================
- 476          // CLOCK_0_enter_DefaultMode_from_RESET
- 477          //================================================================================
- 478          extern void CLOCK_0_enter_DefaultMode_from_RESET(void) {
- 479   1        // $[HFOSC1 Setup]
- 480   1        // [HFOSC1 Setup]$
- 481   1      
- 482   1        // $[CLKSEL - Clock Select]
- 483   1        /*
- 484   1         // CLKSL (Clock Source Select) = HFOSC0 (Clock derived from the Internal
- 485   1         //     High Frequency Oscillator 0.)
- 486   1         // CLKDIV (Clock Source Divider) = SYSCLK_DIV_1 (SYSCLK is equal to
- 487   1         //     selected clock source divided by 1.)
- 488   1         // CLKSL (Clock Source Select) = HFOSC0 (Clock derived from the Internal
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/27/2026 09:04:41 PAGE 9   
+ 427   1         // URT1CTSE (UART1 CTS Input Enable) = DISABLED (UART1 CTS1 unavailable
+ 428   1         //     at Port pin.)
+ 429   1         */
+ 430   1        SFRPAGE = 0x00;
+ 431   1        XBR2 = XBR2_WEAKPUD__PULL_UPS_ENABLED | XBR2_XBARE__ENABLED
+ 432   1            | XBR2_URT1E__DISABLED | XBR2_URT1RTSE__DISABLED
+ 433   1            | XBR2_URT1CTSE__DISABLED;
+ 434   1        // [XBR2 - Port I/O Crossbar 2]$
+ 435   1      
+ 436   1        // $[PRTDRV - Port Drive Strength]
+ 437   1        // [PRTDRV - Port Drive Strength]$
+ 438   1      
+ 439   1        // $[XBR0 - Port I/O Crossbar 0]
+ 440   1        /*
+ 441   1         // URT0E (UART0 I/O Enable) = ENABLED (UART0 TX0, RX0 routed to Port pins
+ 442   1         //     P0.4 and P0.5.)
+ 443   1         // SPI0E (SPI I/O Enable) = DISABLED (SPI I/O unavailable at Port pins.)
+ 444   1         // SMB0E (SMB0 I/O Enable) = DISABLED (SMBus 0 I/O unavailable at Port
+ 445   1         //     pins.)
+ 446   1         // CP0E (Comparator0 Output Enable) = DISABLED (CP0 unavailable at Port
+ 447   1         //     pin.)
+ 448   1         // CP0AE (Comparator0 Asynchronous Output Enable) = DISABLED
+ 449   1         //     (Asynchronous CP0 unavailable at Port pin.)
+ 450   1         // CP1E (Comparator1 Output Enable) = DISABLED (CP1 unavailable at Port
+ 451   1         //     pin.)
+ 452   1         // CP1AE (Comparator1 Asynchronous Output Enable) = DISABLED
+ 453   1         //     (Asynchronous CP1 unavailable at Port pin.)
+ 454   1         // SYSCKE (SYSCLK Output Enable) = DISABLED (SYSCLK unavailable at Port
+ 455   1         //     pin.)
+ 456   1         */
+ 457   1        XBR0 = XBR0_URT0E__ENABLED | XBR0_SPI0E__DISABLED | XBR0_SMB0E__DISABLED
+ 458   1            | XBR0_CP0E__DISABLED | XBR0_CP0AE__DISABLED | XBR0_CP1E__DISABLED
+ 459   1            | XBR0_CP1AE__DISABLED | XBR0_SYSCKE__DISABLED;
+ 460   1        // [XBR0 - Port I/O Crossbar 0]$
+ 461   1      
+ 462   1        // $[XBR1 - Port I/O Crossbar 1]
+ 463   1        // [XBR1 - Port I/O Crossbar 1]$
+ 464   1      
+ 465   1      }
+ 466          
+ 467          //================================================================================
+ 468          // CIP51_0_enter_DefaultMode_from_RESET
+ 469          //================================================================================
+ 470          extern void CIP51_0_enter_DefaultMode_from_RESET(void) {
+ 471   1        // $[PFE0CN - Prefetch Engine Control]
+ 472   1        // [PFE0CN - Prefetch Engine Control]$
+ 473   1      
+ 474   1      }
+ 475          
+ 476          //================================================================================
+ 477          // CLOCK_0_enter_DefaultMode_from_RESET
+ 478          //================================================================================
+ 479          extern void CLOCK_0_enter_DefaultMode_from_RESET(void) {
+ 480   1        // $[HFOSC1 Setup]
+ 481   1        // [HFOSC1 Setup]$
+ 482   1      
+ 483   1        // $[CLKSEL - Clock Select]
+ 484   1        /*
+ 485   1         // CLKSL (Clock Source Select) = HFOSC0 (Clock derived from the Internal
+ 486   1         //     High Frequency Oscillator 0.)
+ 487   1         // CLKDIV (Clock Source Divider) = SYSCLK_DIV_1 (SYSCLK is equal to
+ 488   1         //     selected clock source divided by 1.)
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 9   
 
- 489   1         //     High Frequency Oscillator 0.)
- 490   1         // CLKDIV (Clock Source Divider) = SYSCLK_DIV_1 (SYSCLK is equal to
- 491   1         //     selected clock source divided by 1.)
- 492   1         */
- 493   1        CLKSEL = CLKSEL_CLKSL__HFOSC0 | CLKSEL_CLKDIV__SYSCLK_DIV_1;
+ 489   1         // CLKSL (Clock Source Select) = HFOSC0 (Clock derived from the Internal
+ 490   1         //     High Frequency Oscillator 0.)
+ 491   1         // CLKDIV (Clock Source Divider) = SYSCLK_DIV_1 (SYSCLK is equal to
+ 492   1         //     selected clock source divided by 1.)
+ 493   1         */
  494   1        CLKSEL = CLKSEL_CLKSL__HFOSC0 | CLKSEL_CLKDIV__SYSCLK_DIV_1;
- 495   1        while (CLKSEL & CLKSEL_DIVRDY__BMASK == CLKSEL_DIVRDY__NOT_READY)
- 496   1          ;
- 497   1        // [CLKSEL - Clock Select]$
- 498   1      
- 499   1      }
- 500          
- 501          //================================================================================
- 502          // TIMER01_0_enter_DefaultMode_from_RESET
- 503          //================================================================================
- 504          extern void TIMER01_0_enter_DefaultMode_from_RESET(void) {
- 505   1        // $[Timer Initialization]
- 506   1        //Save Timer Configuration
- 507   1        uint8_t TCON_save;
- 508   1        TCON_save = TCON;
- 509   1        //Stop Timers
- 510   1        TCON &= ~TCON_TR0__BMASK & ~TCON_TR1__BMASK;
- 511   1      
- 512   1        // [Timer Initialization]$
- 513   1      
- 514   1        // $[TH0 - Timer 0 High Byte]
- 515   1        // [TH0 - Timer 0 High Byte]$
- 516   1      
- 517   1        // $[TL0 - Timer 0 Low Byte]
- 518   1        // [TL0 - Timer 0 Low Byte]$
- 519   1      
- 520   1        // $[TH1 - Timer 1 High Byte]
- 521   1        /*
- 522   1         // TH1 (Timer 1 High Byte) = 0x96
- 523   1         */
- 524   1        TH1 = (0x96 << TH1_TH1__SHIFT);
- 525   1        // [TH1 - Timer 1 High Byte]$
- 526   1      
- 527   1        // $[TL1 - Timer 1 Low Byte]
- 528   1        // [TL1 - Timer 1 Low Byte]$
- 529   1      
- 530   1        // $[Timer Restoration]
- 531   1        //Restore Timer Configuration
- 532   1        TCON |= (TCON_save & TCON_TR0__BMASK) | (TCON_save & TCON_TR1__BMASK);
- 533   1      
- 534   1        // [Timer Restoration]$
- 535   1      
- 536   1      }
- 537          
- 538          //================================================================================
- 539          // TIMER_SETUP_0_enter_DefaultMode_from_RESET
- 540          //================================================================================
- 541          extern void TIMER_SETUP_0_enter_DefaultMode_from_RESET(void) {
- 542   1        // $[CKCON0 - Clock Control 0]
- 543   1        /*
- 544   1         // SCA (Timer 0/1 Prescale) = SYSCLK_DIV_12 (System clock divided by 12.)
- 545   1         // T0M (Timer 0 Clock Select) = PRESCALE (Counter/Timer 0 uses the clock
- 546   1         //     defined by the prescale field, SCA.)
- 547   1         // T2MH (Timer 2 High Byte Clock Select) = EXTERNAL_CLOCK (Timer 2 high
- 548   1         //     byte uses the clock defined by T2XCLK in TMR2CN0.)
- 549   1         // T2ML (Timer 2 Low Byte Clock Select) = EXTERNAL_CLOCK (Timer 2 low
- 550   1         //     byte uses the clock defined by T2XCLK in TMR2CN0.)
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/27/2026 09:04:41 PAGE 10  
+ 495   1        CLKSEL = CLKSEL_CLKSL__HFOSC0 | CLKSEL_CLKDIV__SYSCLK_DIV_1;
+ 496   1        while (CLKSEL & CLKSEL_DIVRDY__BMASK == CLKSEL_DIVRDY__NOT_READY)
+ 497   1          ;
+ 498   1        // [CLKSEL - Clock Select]$
+ 499   1      
+ 500   1      }
+ 501          
+ 502          //================================================================================
+ 503          // TIMER01_0_enter_DefaultMode_from_RESET
+ 504          //================================================================================
+ 505          extern void TIMER01_0_enter_DefaultMode_from_RESET(void) {
+ 506   1        // $[Timer Initialization]
+ 507   1        //Save Timer Configuration
+ 508   1        uint8_t TCON_save;
+ 509   1        TCON_save = TCON;
+ 510   1        //Stop Timers
+ 511   1        TCON &= ~TCON_TR0__BMASK & ~TCON_TR1__BMASK;
+ 512   1      
+ 513   1        // [Timer Initialization]$
+ 514   1      
+ 515   1        // $[TH0 - Timer 0 High Byte]
+ 516   1        // [TH0 - Timer 0 High Byte]$
+ 517   1      
+ 518   1        // $[TL0 - Timer 0 Low Byte]
+ 519   1        // [TL0 - Timer 0 Low Byte]$
+ 520   1      
+ 521   1        // $[TH1 - Timer 1 High Byte]
+ 522   1        /*
+ 523   1         // TH1 (Timer 1 High Byte) = 0x96
+ 524   1         */
+ 525   1        TH1 = (0x96 << TH1_TH1__SHIFT);
+ 526   1        // [TH1 - Timer 1 High Byte]$
+ 527   1      
+ 528   1        // $[TL1 - Timer 1 Low Byte]
+ 529   1        // [TL1 - Timer 1 Low Byte]$
+ 530   1      
+ 531   1        // $[Timer Restoration]
+ 532   1        //Restore Timer Configuration
+ 533   1        TCON |= (TCON_save & TCON_TR0__BMASK) | (TCON_save & TCON_TR1__BMASK);
+ 534   1      
+ 535   1        // [Timer Restoration]$
+ 536   1      
+ 537   1      }
+ 538          
+ 539          //================================================================================
+ 540          // TIMER16_2_enter_DefaultMode_from_RESET
+ 541          //================================================================================
+ 542          extern void TIMER16_2_enter_DefaultMode_from_RESET(void) {
+ 543   1        // $[Timer Initialization]
+ 544   1        // Save Timer Configuration
+ 545   1        uint8_t TMR2CN0_TR2_save;
+ 546   1        TMR2CN0_TR2_save = TMR2CN0 & TMR2CN0_TR2__BMASK;
+ 547   1        // Stop Timer
+ 548   1        TMR2CN0 &= ~(TMR2CN0_TR2__BMASK);
+ 549   1        // [Timer Initialization]$
+ 550   1      
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 10  
 
- 551   1         // T3MH (Timer 3 High Byte Clock Select) = EXTERNAL_CLOCK (Timer 3 high
- 552   1         //     byte uses the clock defined by T3XCLK in TMR3CN0.)
- 553   1         // T3ML (Timer 3 Low Byte Clock Select) = EXTERNAL_CLOCK (Timer 3 low
- 554   1         //     byte uses the clock defined by T3XCLK in TMR3CN0.)
- 555   1         // T1M (Timer 1 Clock Select) = SYSCLK (Timer 1 uses the system clock.)
- 556   1         */
- 557   1        CKCON0 = CKCON0_SCA__SYSCLK_DIV_48 | CKCON0_T0M__PRESCALE
- 558   1            | CKCON0_T2MH__EXTERNAL_CLOCK | CKCON0_T2ML__EXTERNAL_CLOCK
- 559   1            | CKCON0_T3MH__EXTERNAL_CLOCK | CKCON0_T3ML__EXTERNAL_CLOCK
- 560   1            | CKCON0_T1M__SYSCLK;
- 561   1        // [CKCON0 - Clock Control 0]$
- 562   1      
- 563   1        // $[CKCON1 - Clock Control 1]
- 564   1        // [CKCON1 - Clock Control 1]$
- 565   1      
- 566   1        // $[TMOD - Timer 0/1 Mode]
- 567   1        /*
- 568   1         // T0M (Timer 0 Mode Select) = MODE0 (Mode 0, 13-bit Counter/Timer)
- 569   1         // T1M (Timer 1 Mode Select) = MODE2 (Mode 2, 8-bit Counter/Timer with
- 570   1         //     Auto-Reload)
- 571   1         // CT0 (Counter/Timer 0 Select) = TIMER (Timer Mode. Timer 0 increments
- 572   1         //     on the clock defined by T0M in the CKCON0 register.)
- 573   1         // GATE0 (Timer 0 Gate Control) = DISABLED (Timer 0 enabled when TR0 = 1
- 574   1         //     irrespective of INT0 logic level.)
- 575   1         // CT1 (Counter/Timer 1 Select) = TIMER (Timer Mode. Timer 1 increments
- 576   1         //     on the clock defined by T1M in the CKCON0 register.)
- 577   1         // GATE1 (Timer 1 Gate Control) = DISABLED (Timer 1 enabled when TR1 = 1
- 578   1         //     irrespective of INT1 logic level.)
- 579   1         */
- 580   1        TMOD = TMOD_T0M__MODE2 | TMOD_T1M__MODE2 | TMOD_CT0__TIMER
- 581   1            | TMOD_GATE0__DISABLED | TMOD_CT1__TIMER | TMOD_GATE1__DISABLED;
- 582   1        // [TMOD - Timer 0/1 Mode]$
- 583   1      
- 584   1        // $[TCON - Timer 0/1 Control]
- 585   1        /*
- 586   1         // TR1 (Timer 1 Run Control) = RUN (Start Timer 1 running.)
- 587   1         */
- 588   1         
- 589   1      //    // Timer0 
- 590   1        TH0 = 0x01;
- 591   1        TL0 = 0x01; 
- 592   1         
- 593   1         
- 594   1        TCON |= TCON_TR1__RUN;
- 595   1        TCON |= TCON_TR0__RUN;
- 596   1        // [TCON - Timer 0/1 Control]$
- 597   1      
- 598   1      }
- 599          
- 600          //================================================================================
- 601          // UART_0_enter_DefaultMode_from_RESET
- 602          //================================================================================
- 603          extern void UART_0_enter_DefaultMode_from_RESET(void) {
- 604   1        // $[SCON0 - UART0 Serial Port Control]
- 605   1        /*
- 606   1         // REN (Receive Enable) = RECEIVE_ENABLED (UART0 reception enabled.)
- 607   1         */
- 608   1        SCON0 |= SCON0_REN__RECEIVE_ENABLED;
- 609   1        // [SCON0 - UART0 Serial Port Control]$
+ 551   1        // Timer2 16-bit auto-reload, SYSCLK/256 ~= 11.96kHz DAC sample tick.
+ 552   1        TMR2CN0 = TMR2CN0_T2XCLK__SYSCLK_DIV_12
+ 553   1            | TMR2CN0_T2SPLIT__16_BIT_RELOAD
+ 554   1            | TMR2CN0_TF2CEN__DISABLED
+ 555   1            | TMR2CN0_TF2LEN__DISABLED;
+ 556   1      
+ 557   1        // $[TMR2H - Timer 2 High Byte]
+ 558   1        TMR2H = (0xFF << TMR2H_TMR2H__SHIFT);
+ 559   1        // [TMR2H - Timer 2 High Byte]$
+ 560   1      
+ 561   1        // $[TMR2L - Timer 2 Low Byte]
+ 562   1        TMR2L = (0x00 << TMR2L_TMR2L__SHIFT);
+ 563   1        // [TMR2L - Timer 2 Low Byte]$
+ 564   1      
+ 565   1        // $[TMR2RLH - Timer 2 Reload High Byte]
+ 566   1        TMR2RLH = (0xFF << TMR2RLH_TMR2RLH__SHIFT);
+ 567   1        // [TMR2RLH - Timer 2 Reload High Byte]$
+ 568   1      
+ 569   1        // $[TMR2RLL - Timer 2 Reload Low Byte]
+ 570   1        TMR2RLL = (0x00 << TMR2RLL_TMR2RLL__SHIFT);
+ 571   1        // [TMR2RLL - Timer 2 Reload Low Byte]$
+ 572   1      
+ 573   1        TMR2CN0_TF2H = 0;
+ 574   1        TMR2CN0_TF2L = 0;
+ 575   1      
+ 576   1        // $[TMR2CN0]
+ 577   1        TMR2CN0 |= TMR2CN0_TR2__RUN;
+ 578   1        // [TMR2CN0]$
+ 579   1      
+ 580   1        // $[Timer Restoration]
+ 581   1        // Restore Timer Configuration
+ 582   1        TMR2CN0 |= TMR2CN0_TR2_save;
+ 583   1        // [Timer Restoration]$
+ 584   1      }
+ 585          
+ 586          //================================================================================
+ 587          // TIMER_SETUP_0_enter_DefaultMode_from_RESET
+ 588          //================================================================================
+ 589          extern void TIMER_SETUP_0_enter_DefaultMode_from_RESET(void) {
+ 590   1        // $[CKCON0 - Clock Control 0]
+ 591   1        /*
+ 592   1         // SCA (Timer 0/1 Prescale) = SYSCLK_DIV_12 (System clock divided by 12.)
+ 593   1         // T0M (Timer 0 Clock Select) = PRESCALE (Counter/Timer 0 uses the clock
+ 594   1         //     defined by the prescale field, SCA.)
+ 595   1         // T2MH (Timer 2 High Byte Clock Select) = EXTERNAL_CLOCK (Timer 2 high
+ 596   1         //     byte uses the clock defined by T2XCLK in TMR2CN0.)
+ 597   1         // T2ML (Timer 2 Low Byte Clock Select) = EXTERNAL_CLOCK (Timer 2 low
+ 598   1         //     byte uses the clock defined by T2XCLK in TMR2CN0.)
+ 599   1         // T3MH (Timer 3 High Byte Clock Select) = EXTERNAL_CLOCK (Timer 3 high
+ 600   1         //     byte uses the clock defined by T3XCLK in TMR3CN0.)
+ 601   1         // T3ML (Timer 3 Low Byte Clock Select) = EXTERNAL_CLOCK (Timer 3 low
+ 602   1         //     byte uses the clock defined by T3XCLK in TMR3CN0.)
+ 603   1         // T1M (Timer 1 Clock Select) = SYSCLK (Timer 1 uses the system clock.)
+ 604   1         */
+ 605   1        CKCON0 = CKCON0_SCA__SYSCLK_DIV_48 | CKCON0_T0M__PRESCALE
+ 606   1            | CKCON0_T2MH__SYSCLK | CKCON0_T2ML__SYSCLK
+ 607   1            | CKCON0_T3MH__EXTERNAL_CLOCK | CKCON0_T3ML__EXTERNAL_CLOCK
+ 608   1            | CKCON0_T1M__SYSCLK;
+ 609   1        // [CKCON0 - Clock Control 0]$
  610   1      
- 611   1      }
- 612          
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/27/2026 09:04:41 PAGE 11  
+ 611   1        // $[CKCON1 - Clock Control 1]
+ 612   1        // [CKCON1 - Clock Control 1]$
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 11  
 
- 613          //================================================================================
- 614          // INTERRUPT_0_enter_DefaultMode_from_RESET
- 615          //================================================================================
- 616          extern void INTERRUPT_0_enter_DefaultMode_from_RESET(void) {
- 617   1        // $[EIE1 - Extended Interrupt Enable 1]
- 618   1        // [EIE1 - Extended Interrupt Enable 1]$
- 619   1      
- 620   1        // $[EIE2 - Extended Interrupt Enable 2]
- 621   1        // [EIE2 - Extended Interrupt Enable 2]$
- 622   1      
- 623   1        // $[EIP1H - Extended Interrupt Priority 1 High]
- 624   1        // [EIP1H - Extended Interrupt Priority 1 High]$
- 625   1      
- 626   1        // $[EIP1 - Extended Interrupt Priority 1 Low]
- 627   1        // [EIP1 - Extended Interrupt Priority 1 Low]$
- 628   1      
- 629   1        // $[EIP2 - Extended Interrupt Priority 2]
- 630   1        // [EIP2 - Extended Interrupt Priority 2]$
+ 613   1      
+ 614   1        // $[TMOD - Timer 0/1 Mode]
+ 615   1        /*
+ 616   1         // T0M (Timer 0 Mode Select) = MODE0 (Mode 0, 13-bit Counter/Timer)
+ 617   1         // T1M (Timer 1 Mode Select) = MODE2 (Mode 2, 8-bit Counter/Timer with
+ 618   1         //     Auto-Reload)
+ 619   1         // CT0 (Counter/Timer 0 Select) = TIMER (Timer Mode. Timer 0 increments
+ 620   1         //     on the clock defined by T0M in the CKCON0 register.)
+ 621   1         // GATE0 (Timer 0 Gate Control) = DISABLED (Timer 0 enabled when TR0 = 1
+ 622   1         //     irrespective of INT0 logic level.)
+ 623   1         // CT1 (Counter/Timer 1 Select) = TIMER (Timer Mode. Timer 1 increments
+ 624   1         //     on the clock defined by T1M in the CKCON0 register.)
+ 625   1         // GATE1 (Timer 1 Gate Control) = DISABLED (Timer 1 enabled when TR1 = 1
+ 626   1         //     irrespective of INT1 logic level.)
+ 627   1         */
+ 628   1        TMOD = TMOD_T0M__MODE2 | TMOD_T1M__MODE2 | TMOD_CT0__TIMER
+ 629   1            | TMOD_GATE0__DISABLED | TMOD_CT1__TIMER | TMOD_GATE1__DISABLED;
+ 630   1        // [TMOD - Timer 0/1 Mode]$
  631   1      
- 632   1        // $[EIP2H - Extended Interrupt Priority 2 High]
- 633   1        // [EIP2H - Extended Interrupt Priority 2 High]$
- 634   1      
- 635   1        // $[IE - Interrupt Enable]
- 636   1        /*
- 637   1         // EA (All Interrupts Enable) = DISABLED (Disable all interrupt sources.)
- 638   1         // EX0 (External Interrupt 0 Enable) = DISABLED (Disable external
- 639   1         //     interrupt 0.)
- 640   1         // EX1 (External Interrupt 1 Enable) = DISABLED (Disable external
- 641   1         //     interrupt 1.)
- 642   1         // ESPI0 (SPI0 Interrupt Enable) = DISABLED (Disable all SPI0
- 643   1         //     interrupts.)
- 644   1         // ET0 (Timer 0 Interrupt Enable) = ENABLED (Enable interrupt requests
- 645   1         //     generated by the TF0 flag.)
- 646   1         // ET1 (Timer 1 Interrupt Enable) = DISABLED (Disable all Timer 1
- 647   1         //     interrupt.)
- 648   1         // ET2 (Timer 2 Interrupt Enable) = DISABLED (Disable Timer 2 interrupt.)
- 649   1         // ES0 (UART0 Interrupt Enable) = DISABLED (Disable UART0 interrupt.)
- 650   1         */
- 651   1        IE = IE_EA__DISABLED | IE_EX0__DISABLED | IE_EX1__DISABLED
- 652   1            | IE_ESPI0__DISABLED | IE_ET0__ENABLED | IE_ET1__DISABLED
- 653   1            | IE_ET2__DISABLED | IE_ES0__DISABLED;
- 654   1        // [IE - Interrupt Enable]$
- 655   1      
- 656   1        // $[IP - Interrupt Priority]
- 657   1        // [IP - Interrupt Priority]$
+ 632   1        // $[TCON - Timer 0/1 Control]
+ 633   1        /*
+ 634   1         // TR1 (Timer 1 Run Control) = RUN (Start Timer 1 running.)
+ 635   1         */
+ 636   1         
+ 637   1      //    // Timer0 
+ 638   1        TH0 = 0x01;
+ 639   1        TL0 = 0x01; 
+ 640   1         
+ 641   1         
+ 642   1        TCON |= TCON_TR1__RUN;
+ 643   1        TCON |= TCON_TR0__RUN;
+ 644   1        // [TCON - Timer 0/1 Control]$
+ 645   1      
+ 646   1      }
+ 647          
+ 648          //================================================================================
+ 649          // UART_0_enter_DefaultMode_from_RESET
+ 650          //================================================================================
+ 651          extern void UART_0_enter_DefaultMode_from_RESET(void) {
+ 652   1        // $[SCON0 - UART0 Serial Port Control]
+ 653   1        /*
+ 654   1         // REN (Receive Enable) = RECEIVE_ENABLED (UART0 reception enabled.)
+ 655   1         */
+ 656   1        SCON0 |= SCON0_REN__RECEIVE_ENABLED;
+ 657   1        // [SCON0 - UART0 Serial Port Control]$
  658   1      
- 659   1        // $[IPH - Interrupt Priority High]
- 660   1        // [IPH - Interrupt Priority High]$
- 661   1      
- 662   1      }
- 663          
+ 659   1      }
+ 660          
+ 661          //================================================================================
+ 662          // INTERRUPT_0_enter_DefaultMode_from_RESET
+ 663          //================================================================================
+ 664          extern void INTERRUPT_0_enter_DefaultMode_from_RESET(void) {
+ 665   1        // $[EIE1 - Extended Interrupt Enable 1]
+ 666   1        // [EIE1 - Extended Interrupt Enable 1]$
+ 667   1      
+ 668   1        // $[EIE2 - Extended Interrupt Enable 2]
+ 669   1        // [EIE2 - Extended Interrupt Enable 2]$
+ 670   1      
+ 671   1        // $[EIP1H - Extended Interrupt Priority 1 High]
+ 672   1        // [EIP1H - Extended Interrupt Priority 1 High]$
+ 673   1      
+ 674   1        // $[EIP1 - Extended Interrupt Priority 1 Low]
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 12  
+
+ 675   1        // [EIP1 - Extended Interrupt Priority 1 Low]$
+ 676   1      
+ 677   1        // $[EIP2 - Extended Interrupt Priority 2]
+ 678   1        // [EIP2 - Extended Interrupt Priority 2]$
+ 679   1      
+ 680   1        // $[EIP2H - Extended Interrupt Priority 2 High]
+ 681   1        // [EIP2H - Extended Interrupt Priority 2 High]$
+ 682   1      
+ 683   1        // $[IE - Interrupt Enable]
+ 684   1        /*
+ 685   1         // EA (All Interrupts Enable) = DISABLED (Disable all interrupt sources.)
+ 686   1         // EX0 (External Interrupt 0 Enable) = DISABLED (Disable external
+ 687   1         //     interrupt 0.)
+ 688   1         // EX1 (External Interrupt 1 Enable) = DISABLED (Disable external
+ 689   1         //     interrupt 1.)
+ 690   1         // ESPI0 (SPI0 Interrupt Enable) = DISABLED (Disable all SPI0
+ 691   1         //     interrupts.)
+ 692   1         // ET0 (Timer 0 Interrupt Enable) = ENABLED (Enable interrupt requests
+ 693   1         //     generated by the TF0 flag.)
+ 694   1         // ET1 (Timer 1 Interrupt Enable) = DISABLED (Disable all Timer 1
+ 695   1         //     interrupt.)
+ 696   1         // ET2 (Timer 2 Interrupt Enable) = DISABLED (Disable Timer 2 interrupt.)
+ 697   1         // ES0 (UART0 Interrupt Enable) = DISABLED (Disable UART0 interrupt.)
+ 698   1         */
+ 699   1        IE = IE_EA__DISABLED | IE_EX0__DISABLED | IE_EX1__DISABLED
+ 700   1            | IE_ESPI0__DISABLED | IE_ET0__ENABLED | IE_ET1__DISABLED
+ 701   1            | IE_ET2__ENABLED | IE_ES0__DISABLED;
+ 702   1        // [IE - Interrupt Enable]$
+ 703   1      
+ 704   1        // $[IP - Interrupt Priority]
+ 705   1        // [IP - Interrupt Priority]$
+ 706   1      
+ 707   1        // $[IPH - Interrupt Priority High]
+ 708   1        // [IPH - Interrupt Priority High]$
+ 709   1      
+ 710   1      }
+ 711          
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    159    ----
+   CODE SIZE        =    194    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
@@ -702,8 +752,6 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
    IDATA SIZE       =   ----    ----
    BIT SIZE         =   ----    ----
 END OF MODULE INFORMATION.
-
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/27/2026 09:04:41 PAGE 12  
 
 
 C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

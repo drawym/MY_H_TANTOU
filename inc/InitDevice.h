@@ -27,6 +27,7 @@ extern void TIMER01_0_enter_DefaultMode_from_RESET(void);
 extern void TIMER_SETUP_0_enter_DefaultMode_from_RESET(void);
 extern void UART_0_enter_DefaultMode_from_RESET(void);
 extern void INTERRUPT_0_enter_DefaultMode_from_RESET(void);
+extern void TIMER16_2_enter_DefaultMode_from_RESET(void);
 // [Config(Per-Module Mode)Transition Prototypes]$
 
 #endif

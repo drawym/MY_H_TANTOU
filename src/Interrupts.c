@@ -17,6 +17,12 @@
 #define SYSCLK             3062000
 
 
+SI_INTERRUPT (TIMER2_ISR, TIMER2_IRQn)
+{
+   TMR2CN0_TF2H = 0;
+//   Deflux_Timer2Tick();
+	P2 ^= 0x02; 
+}
 
 volatile uint32_t counter = 0;  //这个实际上是500us进来一次
 SI_INTERRUPT (TIMER0_ISR, TIMER0_IRQn)

@@ -32,6 +32,7 @@ extern void enter_DefaultMode_from_RESET(void) {
 	CLOCK_0_enter_DefaultMode_from_RESET();
 	TIMER01_0_enter_DefaultMode_from_RESET();
 	TIMER_SETUP_0_enter_DefaultMode_from_RESET();
+	TIMER16_2_enter_DefaultMode_from_RESET();
 	INTERRUPT_0_enter_DefaultMode_from_RESET();
 	UART_0_enter_DefaultMode_from_RESET();
 	
@@ -536,6 +537,53 @@ extern void TIMER01_0_enter_DefaultMode_from_RESET(void) {
 }
 
 //================================================================================
+// TIMER16_2_enter_DefaultMode_from_RESET
+//================================================================================
+extern void TIMER16_2_enter_DefaultMode_from_RESET(void) {
+	// $[Timer Initialization]
+	// Save Timer Configuration
+	uint8_t TMR2CN0_TR2_save;
+	TMR2CN0_TR2_save = TMR2CN0 & TMR2CN0_TR2__BMASK;
+	// Stop Timer
+	TMR2CN0 &= ~(TMR2CN0_TR2__BMASK);
+	// [Timer Initialization]$
+
+	// Timer2 16-bit auto-reload, SYSCLK/256 ~= 11.96kHz DAC sample tick.
+	TMR2CN0 = TMR2CN0_T2XCLK__SYSCLK_DIV_12
+			| TMR2CN0_T2SPLIT__16_BIT_RELOAD
+			| TMR2CN0_TF2CEN__DISABLED
+			| TMR2CN0_TF2LEN__DISABLED;
+
+	// $[TMR2H - Timer 2 High Byte]
+	TMR2H = (0xFF << TMR2H_TMR2H__SHIFT);
+	// [TMR2H - Timer 2 High Byte]$
+
+	// $[TMR2L - Timer 2 Low Byte]
+	TMR2L = (0x00 << TMR2L_TMR2L__SHIFT);
+	// [TMR2L - Timer 2 Low Byte]$
+
+	// $[TMR2RLH - Timer 2 Reload High Byte]
+	TMR2RLH = (0xFF << TMR2RLH_TMR2RLH__SHIFT);
+	// [TMR2RLH - Timer 2 Reload High Byte]$
+
+	// $[TMR2RLL - Timer 2 Reload Low Byte]
+	TMR2RLL = (0x00 << TMR2RLL_TMR2RLL__SHIFT);
+	// [TMR2RLL - Timer 2 Reload Low Byte]$
+
+	TMR2CN0_TF2H = 0;
+	TMR2CN0_TF2L = 0;
+
+	// $[TMR2CN0]
+	TMR2CN0 |= TMR2CN0_TR2__RUN;
+	// [TMR2CN0]$
+
+	// $[Timer Restoration]
+	// Restore Timer Configuration
+	TMR2CN0 |= TMR2CN0_TR2_save;
+	// [Timer Restoration]$
+}
+
+//================================================================================
 // TIMER_SETUP_0_enter_DefaultMode_from_RESET
 //================================================================================
 extern void TIMER_SETUP_0_enter_DefaultMode_from_RESET(void) {
@@ -555,7 +603,7 @@ extern void TIMER_SETUP_0_enter_DefaultMode_from_RESET(void) {
 	 // T1M (Timer 1 Clock Select) = SYSCLK (Timer 1 uses the system clock.)
 	 */
 	CKCON0 = CKCON0_SCA__SYSCLK_DIV_48 | CKCON0_T0M__PRESCALE
-			| CKCON0_T2MH__EXTERNAL_CLOCK | CKCON0_T2ML__EXTERNAL_CLOCK
+			| CKCON0_T2MH__SYSCLK | CKCON0_T2ML__SYSCLK
 			| CKCON0_T3MH__EXTERNAL_CLOCK | CKCON0_T3ML__EXTERNAL_CLOCK
 			| CKCON0_T1M__SYSCLK;
 	// [CKCON0 - Clock Control 0]$
@@ -650,7 +698,7 @@ extern void INTERRUPT_0_enter_DefaultMode_from_RESET(void) {
 	 */
 	IE = IE_EA__DISABLED | IE_EX0__DISABLED | IE_EX1__DISABLED
 			| IE_ESPI0__DISABLED | IE_ET0__ENABLED | IE_ET1__DISABLED
-			| IE_ET2__DISABLED | IE_ES0__DISABLED;
+			| IE_ET2__ENABLED | IE_ES0__DISABLED;
 	// [IE - Interrupt Enable]$
 
 	// $[IP - Interrupt Priority]
