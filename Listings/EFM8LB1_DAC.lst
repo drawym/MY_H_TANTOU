@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   EFM8LB1_DAC                                                       08/28/2026 16:54:46 PAGE 1   
+C51 COMPILER V9.60.0.0   EFM8LB1_DAC                                                       08/28/2026 18:18:01 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE EFM8LB1_DAC
@@ -62,14 +62,14 @@ line level    source
   52   1      
   53   1          DAC1CF0 = DAC1CF0_EN__ENABLE
   54   1                  | DAC1CF0_UPDATE__SYSCLK
-C51 COMPILER V9.60.0.0   EFM8LB1_DAC                                                       08/28/2026 16:54:46 PAGE 2   
+C51 COMPILER V9.60.0.0   EFM8LB1_DAC                                                       08/28/2026 18:18:01 PAGE 2   
 
   55   1                  | DAC1CF0_LJST__RIGHT_JUSTIFY
   56   1                  | DAC1CF0_RSTMD__NORMAL;
   57   1      
   58   1          SFRPAGE = sfrpage_save;
   59   1      
-  60   1          DAC1_SetCode(DAC1_MAX_CODE);
+  60   1          DAC1_SetCode(DAC1_MIN_CODE);
   61   1      }
   62          
   63          void DAC0_SetCode(uint16_t mycode)
@@ -115,10 +115,54 @@ line level    source
  103          {
  104   1          return dac1_code;
  105   1      }
+ 106          
+ 107          
+ 108          
+ 109          
+ 110          
+ 111          
+ 112          /////////////////////////////////////////////////////////
+ 113          
+ 114          
+ 115          //#define SINE_LENGTH 64
+ 116          
+C51 COMPILER V9.60.0.0   EFM8LB1_DAC                                                       08/28/2026 18:18:01 PAGE 3   
+
+ 117          //static uint16_t code sin_table[SINE_LENGTH] =
+ 118          //{
+ 119          //    2048, 2249, 2447, 2642, 2831, 3013, 3185, 3346,
+ 120          //    3495, 3630, 3750, 3853, 3939, 4007, 4056, 4085,
+ 121          //    4095, 4085, 4056, 4007, 3939, 3853, 3750, 3630,
+ 122          //    3495, 3346, 3185, 3013, 2831, 2642, 2447, 2249,
+ 123          //    2048, 1847, 1649, 1454, 1265, 1083, 911, 750,
+ 124          //    601,  466,  346,  243,  157,  89,   40,   11,
+ 125          //    0,    11,   40,   89,   157,  243,  346,  466,
+ 126          //    601,  750,  911, 1083, 1265, 1454, 1649, 1847
+ 127          //};
+ 128          
+ 129          //uint16_t sin_idx = 0;
+ 130          
+ 131          //void DAC0_SinWave(void)
+ 132          //{
+ 133          //    DAC0_SetCode(sin_table[sin_idx]);
+ 134          
+ 135          //    sin_idx++;
+ 136          
+ 137          //    if (sin_idx >= SINE_LENGTH)
+ 138          //    {
+ 139          //        sin_idx = 0;
+ 140          //    }
+ 141          //}
+ 142          
+ 143          
+ 144          
+ 145          
+ 146          
+ 147          
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    140    ----
+   CODE SIZE        =    139    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
@@ -126,8 +170,6 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
    IDATA SIZE       =   ----    ----
    BIT SIZE         =   ----    ----
 END OF MODULE INFORMATION.
-
-C51 COMPILER V9.60.0.0   EFM8LB1_DAC                                                       08/28/2026 16:54:46 PAGE 3   
 
 
 C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

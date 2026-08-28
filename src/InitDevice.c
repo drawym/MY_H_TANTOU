@@ -555,19 +555,19 @@ extern void TIMER16_2_enter_DefaultMode_from_RESET(void) {
 			| TMR2CN0_TF2LEN__DISABLED;
 
 	// $[TMR2H - Timer 2 High Byte]
-	TMR2H = (0xFF << TMR2H_TMR2H__SHIFT);
+	TMR2H = (0xFE);
 	// [TMR2H - Timer 2 High Byte]$
 
 	// $[TMR2L - Timer 2 Low Byte]
-	TMR2L = (0x00 << TMR2L_TMR2L__SHIFT);
+	TMR2L = (0xBC);
 	// [TMR2L - Timer 2 Low Byte]$
 
 	// $[TMR2RLH - Timer 2 Reload High Byte]
-	TMR2RLH = (0xFF << TMR2RLH_TMR2RLH__SHIFT);
+	TMR2RLH = (0xFE);
 	// [TMR2RLH - Timer 2 Reload High Byte]$
 
 	// $[TMR2RLL - Timer 2 Reload Low Byte]
-	TMR2RLL = (0x00 << TMR2RLL_TMR2RLL__SHIFT);
+	TMR2RLL = (0xBC);
 	// [TMR2RLL - Timer 2 Reload Low Byte]$
 
 	TMR2CN0_TF2H = 0;
@@ -708,4 +708,3 @@ extern void INTERRUPT_0_enter_DefaultMode_from_RESET(void) {
 	// [IPH - Interrupt Priority High]$
 
 }
-

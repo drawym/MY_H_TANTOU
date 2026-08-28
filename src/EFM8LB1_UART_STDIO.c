@@ -6,9 +6,15 @@
 #include "EFM8LB1_DAC.h"
 #include "string.h"
 
-// EFM8LB10F16 是 16KB Flash 设备，最后一页地址为 0x3E00（页大小512字节）
+// EFM8LB10F16 是 16KB Flash ，最后一页地址为 0x3E00（页大小512字节）
 // 这里使用倒数第1页的起始地址存放用户数据
 #define FLASH_STORAGE_ADDR  0x3E00
+
+
+		
+		
+		
+
 
 
 /*延时函数*/
@@ -24,6 +30,10 @@ void delay_ms(uint16_t ms)
 	};
 	
 }
+
+
+
+
 
 /***********************************逻辑控制*************************************/
 
@@ -392,6 +402,9 @@ void FrameDataAcquisition(void)
 
 
 
+extern void Deflux_Start(void);
+extern uint8_t Deflux_IsDone(void);
+
 void main (void)
 {
 
@@ -462,7 +475,6 @@ void main (void)
    {
       FrameDataAcquisition();  //串口接收数据
 
-
       //根据逻辑状态处理数据
       switch (logic_state)
       {
@@ -491,10 +503,8 @@ void main (void)
             break;
          case LOGIC_STATE_DEFLUX:  //消磁状态
 
-            /*在这里写消磁的逻辑，也就是控制DAC即P30，输出可变幅度的正弦波
-              正弦波的逻辑是这样子的，首先先输出满摆幅，即以1/2 4096为零点，上下满幅摆动的正弦波，满摆时间为500ms
-              然后以渐摆1.5S的时间到1/2 4096，正弦波的频率为300Hz
-            */
+  
+            RETARGET_PRINTF("\r\n[INFO] DEFLUX_DONE\r\n");
 
             logic_state = LOGIC_STATE_IDLE; 
             break;

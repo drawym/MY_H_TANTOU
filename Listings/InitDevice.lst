@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 1   
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 18:25:19 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE INITDEVICE
@@ -62,7 +62,7 @@ line level    source
   52   1        //Disable Watchdog with key sequence
   53   1        WDTCN = 0xDE; //First key
   54   1        WDTCN = 0xAD; //Second key
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 2   
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 18:25:19 PAGE 2   
 
   55   1        // [WDTCN - Watchdog Timer Control]$
   56   1      
@@ -126,7 +126,7 @@ line level    source
  114   1         // B1 (Port 0 Bit 1 Input Mode) = DIGITAL (P0.1 pin is configured for
  115   1         //     digital mode.)
  116   1         // B2 (Port 0 Bit 2 Input Mode) = DIGITAL (P0.2 pin is configured for
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 3   
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 18:25:19 PAGE 3   
 
  117   1         //     digital mode.)
  118   1         // B3 (Port 0 Bit 3 Input Mode) = DIGITAL (P0.3 pin is configured for
@@ -190,7 +190,7 @@ line level    source
  176   1         //     ignored and will not cause a port mismatch event.)
  177   1         */
  178   1        P0MASK = P0MASK_B0__IGNORED | P0MASK_B1__IGNORED | P0MASK_B2__IGNORED
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 4   
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 18:25:19 PAGE 4   
 
  179   1            | P0MASK_B3__IGNORED | P0MASK_B4__IGNORED | P0MASK_B5__IGNORED
  180   1            | P0MASK_B6__IGNORED | P0MASK_B7__IGNORED;
@@ -254,7 +254,7 @@ line level    source
  238   1         //     drain.)
  239   1         // B1 (Port 1 Bit 1 Output Mode) = OPEN_DRAIN (P1.1 output is open-
  240   1         //     drain.)
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 5   
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 18:25:19 PAGE 5   
 
  241   1         // B2 (Port 1 Bit 2 Output Mode) = OPEN_DRAIN (P1.2 output is open-
  242   1         //     drain.)
@@ -318,7 +318,7 @@ line level    source
  300   1         // B7 (Port 1 Bit 7 Skip) = SKIPPED (P1.7 pin is skipped by the
  301   1         //     crossbar.)
  302   1         */
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 6   
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 18:25:19 PAGE 6   
 
  303   1        P1SKIP = P1SKIP_B0__NOT_SKIPPED | P1SKIP_B1__NOT_SKIPPED
  304   1            | P1SKIP_B2__NOT_SKIPPED | P1SKIP_B3__NOT_SKIPPED
@@ -382,7 +382,7 @@ line level    source
  362   1        // $[P2 - Port 2 Pin Latch]
  363   1        // [P2 - Port 2 Pin Latch]$
  364   1      
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 7   
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 18:25:19 PAGE 7   
 
  365   1        // $[P2MDOUT - Port 2 Output Mode]
  366   1        /*
@@ -446,7 +446,7 @@ line level    source
  424   1         //     pin.)
  425   1         // URT1RTSE (UART1 RTS Output Enable) = DISABLED (UART1 RTS1 unavailable
  426   1         //     at Port pin.)
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 8   
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 18:25:19 PAGE 8   
 
  427   1         // URT1CTSE (UART1 CTS Input Enable) = DISABLED (UART1 CTS1 unavailable
  428   1         //     at Port pin.)
@@ -510,7 +510,7 @@ line level    source
  486   1         //     High Frequency Oscillator 0.)
  487   1         // CLKDIV (Clock Source Divider) = SYSCLK_DIV_1 (SYSCLK is equal to
  488   1         //     selected clock source divided by 1.)
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 9   
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 18:25:19 PAGE 9   
 
  489   1         // CLKSL (Clock Source Select) = HFOSC0 (Clock derived from the Internal
  490   1         //     High Frequency Oscillator 0.)
@@ -574,7 +574,7 @@ line level    source
  548   1        TMR2CN0 &= ~(TMR2CN0_TR2__BMASK);
  549   1        // [Timer Initialization]$
  550   1      
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 10  
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 18:25:19 PAGE 10  
 
  551   1        // Timer2 16-bit auto-reload, SYSCLK/256 ~= 11.96kHz DAC sample tick.
  552   1        TMR2CN0 = TMR2CN0_T2XCLK__SYSCLK_DIV_12
@@ -583,19 +583,19 @@ line level    source
  555   1            | TMR2CN0_TF2LEN__DISABLED;
  556   1      
  557   1        // $[TMR2H - Timer 2 High Byte]
- 558   1        TMR2H = (0xFF << TMR2H_TMR2H__SHIFT);
+ 558   1        TMR2H = (0xFE);
  559   1        // [TMR2H - Timer 2 High Byte]$
  560   1      
  561   1        // $[TMR2L - Timer 2 Low Byte]
- 562   1        TMR2L = (0x00 << TMR2L_TMR2L__SHIFT);
+ 562   1        TMR2L = (0xBC);
  563   1        // [TMR2L - Timer 2 Low Byte]$
  564   1      
  565   1        // $[TMR2RLH - Timer 2 Reload High Byte]
- 566   1        TMR2RLH = (0xFF << TMR2RLH_TMR2RLH__SHIFT);
+ 566   1        TMR2RLH = (0xFE);
  567   1        // [TMR2RLH - Timer 2 Reload High Byte]$
  568   1      
  569   1        // $[TMR2RLL - Timer 2 Reload Low Byte]
- 570   1        TMR2RLL = (0x00 << TMR2RLL_TMR2RLL__SHIFT);
+ 570   1        TMR2RLL = (0xBC);
  571   1        // [TMR2RLL - Timer 2 Reload Low Byte]$
  572   1      
  573   1        TMR2CN0_TF2H = 0;
@@ -638,7 +638,7 @@ line level    source
  610   1      
  611   1        // $[CKCON1 - Clock Control 1]
  612   1        // [CKCON1 - Clock Control 1]$
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 11  
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 18:25:19 PAGE 11  
 
  613   1      
  614   1        // $[TMOD - Timer 0/1 Mode]
@@ -702,7 +702,7 @@ line level    source
  672   1        // [EIP1H - Extended Interrupt Priority 1 High]$
  673   1      
  674   1        // $[EIP1 - Extended Interrupt Priority 1 Low]
-C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 16:45:06 PAGE 12  
+C51 COMPILER V9.60.0.0   INITDEVICE                                                        08/28/2026 18:25:19 PAGE 12  
 
  675   1        // [EIP1 - Extended Interrupt Priority 1 Low]$
  676   1      
@@ -740,11 +740,10 @@ line level    source
  708   1        // [IPH - Interrupt Priority High]$
  709   1      
  710   1      }
- 711          
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    194    ----
+   CODE SIZE        =    196    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----

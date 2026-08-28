@@ -15,6 +15,6 @@ uint16_t DAC0_GetCode(void);
 void DAC1_Init(void);
 void DAC1_SetCode(uint16_t mycode);
 uint16_t DAC1_GetCode(void);
-
+void DAC0_SinWave(void);
 #endif
 
