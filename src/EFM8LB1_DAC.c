@@ -13,10 +13,10 @@ void DAC0_Init(void)
     P3MDIN = (P3MDIN & (uint8_t)~P3MDIN_B0__BMASK) | P3MDIN_B0__ANALOG;
     P3MDOUT = (P3MDOUT & (uint8_t)~P3MDOUT_B0__BMASK) | P3MDOUT_B0__OPEN_DRAIN;
 
-    /* Use VDD as DAC0/1 reference so full-scale is close to VDD. */
+    /* Use VREF as DAC0/1 reference so full-scale is close to VREF. */
     SFRPAGE = 0x30;
-    DACGCF0 = DACGCF0_D01REFSL__VDD
-            | DACGCF0_D23REFSL__VDD
+    DACGCF0 = DACGCF0_D01REFSL__VREF
+            | DACGCF0_D23REFSL__VREF
             | DACGCF0_D1SRC__DAC1
             | DACGCF0_D3SRC__DAC3
             | DACGCF0_D1AMEN__NORMAL
@@ -29,7 +29,7 @@ void DAC0_Init(void)
 
     SFRPAGE = sfrpage_save;
 
-    DAC0_SetCode(DAC0_MAX_CODE);
+    DAC0_SetCode(DAC01_MID_CODE);
 }
 
 void DAC1_Init(void)
@@ -41,10 +41,10 @@ void DAC1_Init(void)
     P3MDIN = (P3MDIN & (uint8_t)~P3MDIN_B1__BMASK) | P3MDIN_B1__ANALOG;
     P3MDOUT = (P3MDOUT & (uint8_t)~P3MDOUT_B1__BMASK) | P3MDOUT_B1__OPEN_DRAIN;
 
-    /* Use VDD as DAC0/1 reference so full-scale is close to VDD. */
+    /* Use VREF as DAC0/1 reference so full-scale is close to VREF. */
     SFRPAGE = 0x30;
-    DACGCF0 = DACGCF0_D01REFSL__VDD
-            | DACGCF0_D23REFSL__VDD
+    DACGCF0 = DACGCF0_D01REFSL__VREF
+            | DACGCF0_D23REFSL__VREF
             | DACGCF0_D1SRC__DAC1
             | DACGCF0_D3SRC__DAC3
             | DACGCF0_D1AMEN__NORMAL
@@ -72,8 +72,12 @@ void DAC0_SetCode(uint16_t mycode)
     dac0_code = mycode;
 
     SFRPAGE = 0x30;
-    DAC0H = (uint8_t)(mycode >> 8);
-    DAC0L = (uint8_t)(mycode & 0xFF);
+    // DAC0H = (uint8_t)(mycode >> 8);
+    // DAC0L = (uint8_t)(mycode & 0xFF);
+
+DAC0L = (uint8_t)(mycode & 0xFF);
+DAC0H = (uint8_t)(mycode >> 8);
+
     SFRPAGE = sfrpage_save;
 }
 
@@ -94,8 +98,13 @@ void DAC1_SetCode(uint16_t mycode)
     dac1_code = mycode;
 
     SFRPAGE = 0x30;
-    DAC1H = (uint8_t)(mycode >> 8);
+
+    
     DAC1L = (uint8_t)(mycode & 0xFF);
+    DAC1H = (uint8_t)(mycode >> 8);
+
+
+
     SFRPAGE = sfrpage_save;
 }
 

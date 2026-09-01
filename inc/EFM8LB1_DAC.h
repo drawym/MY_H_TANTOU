@@ -9,6 +9,8 @@
 #define DAC1_MIN_CODE 0u
 #define DAC1_MAX_CODE 4095u
 
+#define DAC01_MID_CODE 2046u
+
 void DAC0_Init(void);
 void DAC0_SetCode(uint16_t mycode);
 uint16_t DAC0_GetCode(void);

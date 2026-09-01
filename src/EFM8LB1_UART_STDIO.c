@@ -1,3 +1,4 @@
+
 #include <SI_EFM8LB1_Register_Enums.h>
 #include "retargetserial.h"
 #include "InitDevice.h"
@@ -6,47 +7,58 @@
 #include "EFM8LB1_DAC.h"
 #include "string.h"
 
+
+/*****************************************************宏定义部分*********************************************************** */
 // EFM8LB10F16 是 16KB Flash ，最后一页地址为 0x3E00（页大小512字节）
 // 这里使用倒数第1页的起始地址存放用户数据
 #define FLASH_STORAGE_ADDR  0x3E00
 
+//接收的最长数据
+#define UART_RX_BUFFER_SIZE 20 
+//定义帧头
+#define FRAME_HEADER 0xAA
+//定义零点控制的类型
+#define ZERO_CONTROL_TYPE 0x05
+//定义消磁功能的类型
+#define DEFLUX_TYPE 0xC0
+//定义继电器切换的类型
+#define RELAY_SWITCH_TYPE 0xD0
+
 
 		
+/*****************************************************宏定义部分*********************************************************** */		
 		
-		
+
+
+/*****************************************************外部声明部分*********************************************************** */		
+
+extern volatile uint32_t counter ;//延时函数-中断里面
+extern volatile uint8_t deflux_trigger ;   // 消磁的逻辑，设置为1则行一次-中断里面
+/*****************************************************外部声明部分*********************************************************** */		
 
 
 
-/*延时函数*/
-extern volatile uint32_t counter ;
+
+/*****************************************************延时函数*********************************************************** */		
 uint32_t start_counter =0;
 void delay_ms(uint16_t ms)
 {
 	start_counter = counter;
-	
 	while((counter - start_counter ) < (2*ms))
 	{
-		
 	};
-	
 }
+		
 
 
 
 
 
-/***********************************逻辑控制*************************************/
-
-
-
+/*****************************************************逻辑控制*********************************************************** */
 typedef struct
 {
-
-
    uint16_t zero_control_value; //零点控制值
    uint16_t relay_status; //继电器状态 00是档位A 01是档位B
-
-
 } logic_control_t;
 
 logic_control_t logic_control={0};
@@ -59,11 +71,8 @@ typedef enum
    LOGIC_STATE_RELAY_SWITCH = 3,  //继电器切换
 } logic_state_t;
 
-
 logic_state_t logic_state; //状态机执行状态
-
-/***********************************逻辑控制*************************************/
-
+/*****************************************************逻辑控制*********************************************************** */
 
 
 
@@ -72,8 +81,7 @@ logic_state_t logic_state; //状态机执行状态
 
 
 
-/*************************************flash*********************************** */
-
+/*****************************************************flash实现*********************************************************** */
 typedef struct
 {
    logic_control_t mydata;
@@ -126,7 +134,7 @@ uint8_t readLogicControl(void)
    return 1;
 }
 
-/*************************************flash*********************************** */
+/*****************************************************flash实现*********************************************************** */
 
 
 
@@ -142,8 +150,7 @@ uint8_t readLogicControl(void)
 
 
 
-
-/***********************************继电器控制*************************************/
+/*****************************************************继电器控制*********************************************************** */
 
 void RELAY_A(void)
 {
@@ -172,11 +179,7 @@ void RELAY_B(void)
    P2 |= 0x04;    // PY_A0 P2.2  输出高
 }
 
-
-
-
-/***********************************继电器控制*************************************/
-
+/*****************************************************继电器控制*********************************************************** */
 
 
 
@@ -187,13 +190,7 @@ void RELAY_B(void)
 
 
 
-
-/***********************************串口功能实现*************************************/
-
-
-void SiLabs_Startup (void)
-{
-}
+/*****************************************************串口功能实现*********************************************************** */
 
 
 
@@ -205,17 +202,6 @@ unsigned char uart_getchar(void)
     SCON0 &= ~0x01; // clear RI0
     return c1;
 }
-
-#define UART_RX_BUFFER_SIZE 20
-//定义帧头
-#define FRAME_HEADER 0xAA
-//定义零点控制的类型
-#define ZERO_CONTROL_TYPE 0xA0
-//定义消磁功能的类型
-#define DEFLUX_TYPE 0xC0
-//定义继电器切换的类型
-#define RELAY_SWITCH_TYPE 0xD0
-
 
 
 
@@ -335,30 +321,25 @@ void FrameDataAcquisition(void)
             {
                /*对数据长度后面的数据进行拼接*/
                logic_control.zero_control_value = ((uint16_t)uart_rx_buffer.data_value[3]) << 8  | (uart_rx_buffer.data_value[4]);
-               
-               
                logic_state = LOGIC_STATE_ZERO_CONTROL;
-               RETARGET_PRINTF("\r\n[INFO] zero_control_value = %d\r\n", logic_control.zero_control_value);
+
             }
             else if (uart_rx_buffer.type == DEFLUX_TYPE)
             {
                logic_state = LOGIC_STATE_DEFLUX;
-               RETARGET_PRINTF("\r\n[INFO] DEFLUX\r\n");
+
             }
             else if (uart_rx_buffer.type == RELAY_SWITCH_TYPE)
             {
                logic_state = LOGIC_STATE_RELAY_SWITCH;
                /*只有一个数据，即数据长度是1*/
                logic_control.relay_status = ((uint16_t)uart_rx_buffer.data_value[3]);
-               RETARGET_PRINTF("\r\n[INFO] relay_status = %d\r\n", logic_control.relay_status);
             }
             else
             {
                logic_state = LOGIC_STATE_IDLE;  //注意logic_state需要在完成后续的状态机后设置为空闲状态
                RETARGET_PRINTF("\r\n[ERROR] TYPE-ERROR\r\n");
             }
-
-
          } 
          else  // 校验错误
          {
@@ -393,17 +374,13 @@ void FrameDataAcquisition(void)
 
 
 }
-
-/***********************************串口功能实现*************************************/
-
+/*****************************************************串口功能实现*********************************************************** */
 
 
 
 
 
 
-extern void Deflux_Start(void);
-extern uint8_t Deflux_IsDone(void);
 
 void main (void)
 {
@@ -412,28 +389,22 @@ void main (void)
    DAC0_Init();
    DAC1_Init();
 
-   IE_EA = 1;                          // Enable global interrupts
-
-   // while(1);
-
+   IE_EA = 1; // Enable global interrupts
    SFRPAGE = 0x00;
    SCON0 = 0x50; // UART mode
    SCON0 |= 0x02; // set TI (transmit ready)
 
 
-   /*取flash的数据*/
+   //flash初始化
    {
       uint8_t ret;
       ret = readLogicControl();
-    
-  
       RETARGET_PRINTF("\r\n[INIT_Flash_ok]\r\n");
       //打印信息
       RETARGET_PRINTF("\r\n[INFO] logic_control.zero_control_value = %d, logic_control.relay_status = %d\r\n", logic_control.zero_control_value, logic_control.relay_status);
-
    }
 
-   // /* Restore saved DAC code and reject invalid legacy data. */
+   // dac数据初始化
    if (logic_control.zero_control_value <= DAC1_MAX_CODE)
    {
       DAC1_SetCode(logic_control.zero_control_value);
@@ -445,18 +416,15 @@ void main (void)
    }
 
 
-
-   /*上电对继电器进行初始化，关闭继电器，逻辑为RY_A1是P2.1 ， RY_A0 是P2.2 */
+   //继电器初始化
    {
-
-      // 确保 P2.1/P2.2 作为普通 GPIO
-      P2SKIP |= 0x06;   // bit1 + bit2 = 0x02 + 0x04
-
-      // 配置 P2.1 P2.2 为推挽输出 (开漏则改为 P2MDIN & P2MDOUT 对应位置0)
-      P2MDIN |= 0x06;   // 数字输入使能
-      P2MDOUT |= 0x06;  // 推挽输出
-
-  
+      // 确保 P2.1/P2.2/P2.3 作为普通 GPIO
+      P2SKIP |= 0x0E;   // bit1 + bit2 + bit3 = 0x02 + 0x04 + 0x08
+      // 配置 P2.1 P2.2 P2.3 为推挽输出 (开漏则改为 P2MDIN & P2MDOUT 对应位置0)
+      P2MDIN |= 0x0E;   // 数字输入使能
+      P2MDOUT |= 0x0E;  // 推挽输出
+      // P2.3 拉高
+      P2 |= 0x08;
       //根据logic_control.relay_status判断是否开启继电器
       if (logic_control.relay_status == 0x00)
       {
@@ -466,7 +434,6 @@ void main (void)
       {
          RELAY_B();
       }
-
    }
 
 
@@ -479,55 +446,49 @@ void main (void)
       switch (logic_state)
       {
          case LOGIC_STATE_IDLE:  //空闲状态
-
-
             break;
 
          case LOGIC_STATE_ZERO_CONTROL:  //零点控制状态
 
-
-         // DAC1_SetCode(4000);
             if(logic_control.zero_control_value>=DAC1_MIN_CODE && logic_control.zero_control_value<=DAC1_MAX_CODE)
             {
                DAC1_SetCode(logic_control.zero_control_value);
                saveLogicControl();
+               // RETARGET_PRINTF("\r\n[INFO] zero_control_value = %d\r\n", logic_control.zero_control_value);
             }
             else
             {
-               RETARGET_PRINTF("\r\n[ERROR] ZERO_CONTROL_VALUE_ERROR\r\n");
+               // RETARGET_PRINTF("\r\n[ERROR] ZERO_CONTROL_VALUE_ERROR\r\n");
             }
-
-
-
             logic_state = LOGIC_STATE_IDLE; 
             break;
          case LOGIC_STATE_DEFLUX:  //消磁状态
-
-  
-            RETARGET_PRINTF("\r\n[INFO] DEFLUX_DONE\r\n");
-
+            deflux_trigger = 1;
+            // RETARGET_PRINTF("\r\n[INFO] DEFLUX_DONE\r\n");
             logic_state = LOGIC_STATE_IDLE; 
             break;
          case LOGIC_STATE_RELAY_SWITCH:  //继电器状态
-
             /*在这里写继电器的逻辑，也就是控制继电器的开闭*/
             if (logic_control.relay_status == 0x00)
             {
                RELAY_A();
                saveLogicControl();
                /*发送成功的帧*/
-               RETARGET_PRINTF("\r\n[INFO] RELAY_A\r\n");
+               // RETARGET_PRINTF("\r\n[INFO] relay_status = %d\r\n", logic_control.relay_status);
+               // RETARGET_PRINTF("\r\n[INFO] RELAY_A\r\n");
             }
             else if (logic_control.relay_status == 0x01)
             {
                RELAY_B();
                saveLogicControl();
                /*发送成功的帧*/
-               RETARGET_PRINTF("\r\n[INFO] RELAY_B\r\n");
+               // RETARGET_PRINTF("\r\n[INFO] relay_status = %d\r\n", logic_control.relay_status);
+               // RETARGET_PRINTF("\r\n[INFO] RELAY_B\r\n");
             }
             else
             {
                /*发送失败的帧*/
+               // RETARGET_PRINTF("\r\n[ERROR] RELAY_SWITCH_FAILED\r\n");
             }
             logic_state = LOGIC_STATE_IDLE; 
             break;
