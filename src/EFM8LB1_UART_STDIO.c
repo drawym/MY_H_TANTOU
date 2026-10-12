@@ -240,7 +240,10 @@ uint16_t ADC_ZERO_Read(void)
 
 //调零计数
 uint16_t set_zero_cnt = 0;
-	 
+//成功计数
+uint16_t zero_OK_cnt = 0;	 
+#define ZERO_SUCCESS_NUM 100
+
 uint8_t set_zero(void)
 {
 		//读取ADC数据
@@ -285,22 +288,36 @@ uint8_t set_zero(void)
 						 DAC1_SetCode(set_dac1_code);
 					}
 					/* 死区内：不调节，防振荡 */
+					else
+					{
+					   //成功次数增加
+						zero_OK_cnt ++;
+						if(zero_OK_cnt >= ZERO_SUCCESS_NUM)
+						{
+							zero_OK_cnt=0;
+							set_zero_cnt = 0;
+						  adc_zero_enable =0;
+							return 1;  //成功
+						}
+					}
 					
 					set_zero_cnt=set_zero_cnt+1;
-					if(set_zero_cnt % 1000 == 0)
-					{
-						// 打印原始码值(14bit) + 换算电压(mV)，VDD=2.5V 参考
-						RETARGET_PRINTF("DAC1 code=%u    ADC_ZERO=%u   %umV \r\n",
-						now_dac1_code,
-						adc_zero_value,
-						(uint16_t)(((uint32_t)adc_zero_value * 2500UL) / 16383UL));
-					}
+//					if(set_zero_cnt % 1000 == 0)
+//					{
+//						// 打印原始码值(14bit) + 换算电压(mV)，VDD=2.5V 参考
+//						RETARGET_PRINTF("DAC1 code=%u    ADC_ZERO=%u   %umV \r\n",
+//						now_dac1_code,
+//						adc_zero_value,
+//						(uint16_t)(((uint32_t)adc_zero_value * 2500UL) / 16383UL));
+//					}
+					
+					
 					//看看3s内是否可以调节完成，可以的话发送信息
 					if(set_zero_cnt % 3000 == 0)
 					{
 						set_zero_cnt = 0;
 						adc_zero_enable =0;
-						
+						zero_OK_cnt=0;
 						if(  (err_mv >= -((int16_t)ADC_CLOSE_DEADBAND_MV +1) )  &&  (err_mv <= ((int16_t)ADC_CLOSE_DEADBAND_MV +1)  )  )
 							return 1;  //成功
 						else
@@ -547,6 +564,7 @@ void FrameDataAcquisition(void)
 							//记录下当前的adc数据，失败以后可以复原
 							 last_dac1_value = DAC1_GetCode();
 							 set_zero_cnt =0;
+							 zero_OK_cnt =0;
 						}
             else
             {
@@ -760,7 +778,7 @@ void main (void)
 								{
 								 unsigned char chk;
 								 chk = (unsigned char)(0x100 - (SET_ZERO_TYPE + 0x01 + 0x01));
-								 RETARGET_PRINTF("%c%c%c%c",
+								 RETARGET_PRINTF("%c%c%c%c%c",
 										 FRAME_HEADER, SET_ZERO_TYPE, 0x01 ,0x01, chk);
 								}		
 							}
@@ -775,7 +793,7 @@ void main (void)
 								{
 								 unsigned char chk;
 								 chk = (unsigned char)(0x100 - (SET_ZERO_TYPE + 0x01 + 0x00));
-								 RETARGET_PRINTF("%c%c%c%c",
+								 RETARGET_PRINTF("%c%c%c%c%c",
 										 FRAME_HEADER, SET_ZERO_TYPE, 0x01 ,0x00, chk);
 								}		
 							}

@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:23:14 PAGE 1   
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:34:14 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE EFM8LB1_UART_STDIO
@@ -62,7 +62,7 @@ line level    source
   47   1        start_counter = counter;
   48   1        while((counter - start_counter ) < (2*ms))
   49   1        {
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:23:14 PAGE 2   
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:34:14 PAGE 2   
 
   50   2        };
   51   1      }
@@ -126,7 +126,7 @@ line level    source
  106          {
  107   1         flash_storage_t storage;
  108   1         uint8_t *p;
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:23:14 PAGE 3   
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:34:14 PAGE 3   
 
  109   1         uint16_t i;
  110   1         FLADDR addr = FLASH_STORAGE_ADDR;
@@ -190,7 +190,7 @@ line level    source
  166   1      
  167   1         delay_ms(100);
  168   1      
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:23:14 PAGE 4   
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:34:14 PAGE 4   
 
  169   1         P2 |= 0x04;    // PY_A0 P2.2  输出高
  170   1      }
@@ -254,7 +254,7 @@ line level    source
  220   1         ADC0CF1 = ADC0CF1_ADLPM__LP_DISABLED | (0x03 << ADC0CF1_ADTK__SHIFT);
  221   1         ADC0CN0 |= ADC0CN0_ADEN__ENABLED | ADC0CN0_IPOEN__POWER_DOWN;
  222   1      
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:23:14 PAGE 5   
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:34:14 PAGE 5   
 
  223   1         SFRPAGE = sfrpage_save;
  224   1      }
@@ -276,591 +276,609 @@ line level    source
  240          
  241          //调零计数
  242          uint16_t set_zero_cnt = 0;
- 243             
- 244          uint8_t set_zero(void)
- 245          {
- 246   1          //读取ADC数据
- 247   1          // ---- ADC_ZERO 测试（新增）：开关默认开，一直读取并通过串口发送 ----
- 248   1          if (adc_zero_enable)
- 249   1          {
- 250   2            
- 251   2             static uint8_t adc_zero_inited = 0;
- 252   2             if (!adc_zero_inited)
- 253   2             {
- 254   3                ADC_ZERO_Init(); 
- 255   3                adc_zero_inited = 1;
- 256   3             }
- 257   2             ADC_ZERO_Read();
- 258   2             // ---- 闭环调节：ADC读数偏大 -> 减小DAC1，偏小 -> 增大DAC1，稳定在 target_adc_vla
+ 243          //成功计数
+ 244          uint16_t zero_OK_cnt = 0;  
+ 245          #define ZERO_SUCCESS_NUM 100
+ 246          
+ 247          uint8_t set_zero(void)
+ 248          {
+ 249   1          //读取ADC数据
+ 250   1          // ---- ADC_ZERO 测试（新增）：开关默认开，一直读取并通过串口发送 ----
+ 251   1          if (adc_zero_enable)
+ 252   1          {
+ 253   2            
+ 254   2             static uint8_t adc_zero_inited = 0;
+ 255   2             if (!adc_zero_inited)
+ 256   2             {
+ 257   3                ADC_ZERO_Init(); 
+ 258   3                adc_zero_inited = 1;
+ 259   3             }
+ 260   2             ADC_ZERO_Read();
+ 261   2             // ---- 闭环调节：ADC读数偏大 -> 减小DAC1，偏小 -> 增大DAC1，稳定在 target_adc_vla
              -ue ----
- 259   2             {
- 260   3                uint16_t now_dac1_code;
- 261   3                uint16_t set_dac1_code;
- 262   3                uint16_t now_mv;
- 263   3                int16_t err_mv;
- 264   3                uint16_t step;
- 265   3      
- 266   3                now_dac1_code = DAC1_GetCode();                 // 当前DAC1码值
- 267   3                set_dac1_code = now_dac1_code;
+ 262   2             {
+ 263   3                uint16_t now_dac1_code;
+ 264   3                uint16_t set_dac1_code;
+ 265   3                uint16_t now_mv;
+ 266   3                int16_t err_mv;
+ 267   3                uint16_t step;
  268   3      
- 269   3                now_mv = (uint16_t)(((uint32_t)adc_zero_value * 2500UL) / 16383UL);   // 换算电压 mV
- 270   3      
- 271   3                err_mv = (int16_t)now_mv - 1259;   // 正=电压偏大
- 272   3               
- 273   3                if (err_mv > (int16_t)ADC_CLOSE_DEADBAND_MV)
- 274   3                {
- 275   4                   /* 电压偏大：减小DAC1 */
- 276   4                   step = 1;
- 277   4                   set_dac1_code -= step;
- 278   4                   DAC1_SetCode(set_dac1_code);
- 279   4                }
- 280   3                else if (err_mv < -(int16_t)ADC_CLOSE_DEADBAND_MV)
- 281   3                {
- 282   4                   /* 电压偏小：增大DAC1 */
- 283   4                   step = 1;
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:23:14 PAGE 6   
+ 269   3                now_dac1_code = DAC1_GetCode();                 // 当前DAC1码值
+ 270   3                set_dac1_code = now_dac1_code;
+ 271   3      
+ 272   3                now_mv = (uint16_t)(((uint32_t)adc_zero_value * 2500UL) / 16383UL);   // 换算电压 mV
+ 273   3      
+ 274   3                err_mv = (int16_t)now_mv - 1259;   // 正=电压偏大
+ 275   3               
+ 276   3                if (err_mv > (int16_t)ADC_CLOSE_DEADBAND_MV)
+ 277   3                {
+ 278   4                   /* 电压偏大：减小DAC1 */
+ 279   4                   step = 1;
+ 280   4                   set_dac1_code -= step;
+ 281   4                   DAC1_SetCode(set_dac1_code);
+ 282   4                }
+ 283   3                else if (err_mv < -(int16_t)ADC_CLOSE_DEADBAND_MV)
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:34:14 PAGE 6   
 
- 284   4                   set_dac1_code += step;
- 285   4                   DAC1_SetCode(set_dac1_code);
- 286   4                }
- 287   3                /* 死区内：不调节，防振荡 */
- 288   3                
- 289   3                set_zero_cnt=set_zero_cnt+1;
- 290   3                if(set_zero_cnt % 1000 == 0)
- 291   3                {
- 292   4                  // 打印原始码值(14bit) + 换算电压(mV)，VDD=2.5V 参考
- 293   4                  RETARGET_PRINTF("DAC1 code=%u    ADC_ZERO=%u   %umV \r\n",
- 294   4                  now_dac1_code,
- 295   4                  adc_zero_value,
- 296   4                  (uint16_t)(((uint32_t)adc_zero_value * 2500UL) / 16383UL));
- 297   4                }
- 298   3                //看看3s内是否可以调节完成，可以的话发送信息
- 299   3                if(set_zero_cnt % 3000 == 0)
- 300   3                {
- 301   4                  set_zero_cnt = 0;
- 302   4                  adc_zero_enable =0;
- 303   4                  
- 304   4                  if(  (err_mv >= -((int16_t)ADC_CLOSE_DEADBAND_MV +1) )  &&  (err_mv <= ((int16_t)ADC_CLOSE_DEADBAND_
+ 284   3                {
+ 285   4                   /* 电压偏小：增大DAC1 */
+ 286   4                   step = 1;
+ 287   4                   set_dac1_code += step;
+ 288   4                   DAC1_SetCode(set_dac1_code);
+ 289   4                }
+ 290   3                /* 死区内：不调节，防振荡 */
+ 291   3                else
+ 292   3                {
+ 293   4                   //成功次数增加
+ 294   4                  zero_OK_cnt ++;
+ 295   4                  if(zero_OK_cnt >= ZERO_SUCCESS_NUM)
+ 296   4                  {
+ 297   5                    zero_OK_cnt=0;
+ 298   5                    set_zero_cnt = 0;
+ 299   5                    adc_zero_enable =0;
+ 300   5                    return 1;  //成功
+ 301   5                  }
+ 302   4                }
+ 303   3                
+ 304   3                set_zero_cnt=set_zero_cnt+1;
+ 305   3      //          if(set_zero_cnt % 1000 == 0)
+ 306   3      //          {
+ 307   3      //            // 打印原始码值(14bit) + 换算电压(mV)，VDD=2.5V 参考
+ 308   3      //            RETARGET_PRINTF("DAC1 code=%u    ADC_ZERO=%u   %umV \r\n",
+ 309   3      //            now_dac1_code,
+ 310   3      //            adc_zero_value,
+ 311   3      //            (uint16_t)(((uint32_t)adc_zero_value * 2500UL) / 16383UL));
+ 312   3      //          }
+ 313   3                
+ 314   3                
+ 315   3                //看看3s内是否可以调节完成，可以的话发送信息
+ 316   3                if(set_zero_cnt % 3000 == 0)
+ 317   3                {
+ 318   4                  set_zero_cnt = 0;
+ 319   4                  adc_zero_enable =0;
+ 320   4                  zero_OK_cnt=0;
+ 321   4                  if(  (err_mv >= -((int16_t)ADC_CLOSE_DEADBAND_MV +1) )  &&  (err_mv <= ((int16_t)ADC_CLOSE_DEADBAND_
              -MV +1)  )  )
- 305   4                    return 1;  //成功
- 306   4                  else
- 307   4                    return 2;  //失败
- 308   4                }
- 309   3             }
- 310   2             delay_ms(1);
- 311   2             return 0;
- 312   2          }
- 313   1          return 0; 
- 314   1      }
- 315          
- 316          /*****************************************************新增 调零控制 ********************************
+ 322   4                    return 1;  //成功
+ 323   4                  else
+ 324   4                    return 2;  //失败
+ 325   4                }
+ 326   3             }
+ 327   2             delay_ms(1);
+ 328   2             return 0;
+ 329   2          }
+ 330   1          return 0; 
+ 331   1      }
+ 332          
+ 333          /*****************************************************新增 调零控制 ********************************
              -*************************** */
- 317          
- 318          
- 319          
- 320          
- 321          
- 322          
- 323          /*****************************************************串口功能实现**********************************
-             -************************* */
- 324          
- 325          // UART 接收 / 发送环形缓冲区（中断与主循环之间传递数据）
- 326          // 放到 XDATA，避免占用宝贵的内部 DATA RAM
- 327          #define UART_RX_RING_SIZE  64
- 328          #define UART_TX_RING_SIZE  64
- 329          
- 330          static volatile unsigned char xdata uart_rx_ring[UART_RX_RING_SIZE];
- 331          static volatile unsigned char uart_rx_head = 0;   // 中断写
- 332          static volatile unsigned char uart_rx_tail = 0;   // 主循环读
- 333          
- 334          static volatile unsigned char xdata uart_tx_ring[UART_TX_RING_SIZE];
- 335          static volatile unsigned char uart_tx_head = 0;   // 主循环写
- 336          static volatile unsigned char uart_tx_tail = 0;   // 中断读
- 337          static volatile bit  uart_tx_busy = 0;            // 1=正在发送中
+ 334          
+ 335          
+ 336          
+ 337          
  338          
- 339          /**
- 340           * UART0 中断：收字节入 RX 环形缓冲；发字节从 TX 环形缓冲取出。
- 341           * 这样即便 Timer2 消磁中断疯狂占用 CPU，串口收发也不会丢字节。
- 342           */
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:23:14 PAGE 7   
+ 339          
+ 340          /*****************************************************串口功能实现**********************************
+             -************************* */
+ 341          
+ 342          // UART 接收 / 发送环形缓冲区（中断与主循环之间传递数据）
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:34:14 PAGE 7   
 
- 343          SI_INTERRUPT (UART0_ISR, UART0_IRQn)
- 344          {
- 345   1         uint8_t SFRPAGE_save = SFRPAGE;
- 346   1         SFRPAGE = 0x00;
- 347   1      
- 348   1         if (SCON0 & 0x01)  // RI0
- 349   1         {
- 350   2            SCON0 &= ~0x01;  // clear RI0
- 351   2            uart_rx_ring[uart_rx_head] = SBUF0;
- 352   2            uart_rx_head = (unsigned char)((uart_rx_head + 1) % UART_RX_RING_SIZE);
- 353   2         }
- 354   1      
- 355   1         if (SCON0 & 0x02)  // TI0
- 356   1         {
- 357   2            SCON0 &= ~0x02;  // clear TI0
- 358   2            if (uart_tx_head != uart_tx_tail)
- 359   2            {
- 360   3               SBUF0 = uart_tx_ring[uart_tx_tail];
- 361   3               uart_tx_tail = (unsigned char)((uart_tx_tail + 1) % UART_TX_RING_SIZE);
- 362   3               uart_tx_busy = 1;
- 363   3            }
- 364   2            else
- 365   2            {
- 366   3               uart_tx_busy = 0;  // 缓冲区空，停止发送
- 367   3            }
- 368   2         }
- 369   1      
- 370   1         SFRPAGE = SFRPAGE_save;
- 371   1      }
- 372          
- 373          unsigned char uart_getchar(void)
- 374          {
- 375   1          unsigned char c1;
- 376   1          while (uart_rx_head == uart_rx_tail);  // 等待缓冲区有数据
- 377   1          c1 = uart_rx_ring[uart_rx_tail];
- 378   1          uart_rx_tail = (unsigned char)((uart_rx_tail + 1) % UART_RX_RING_SIZE);
- 379   1          return c1;
- 380   1      }
- 381          
- 382          /**
- 383           * putchar —— 重定向 printf 的输出，改为写入 TX 环形缓冲，由中断发送。
- 384           */
- 385          char putchar(char c)
- 386          {
- 387   1         bit need_start;
- 388   1         // 等待 TX 缓冲区有空间
- 389   1         while ((unsigned char)((uart_tx_head + 1) % UART_TX_RING_SIZE) == uart_tx_tail);
- 390   1      
- 391   1         IE_EA = 0;  // 关中断，保护临界区
- 392   1         uart_tx_ring[uart_tx_head] = (unsigned char)c;
- 393   1         uart_tx_head = (unsigned char)((uart_tx_head + 1) % UART_TX_RING_SIZE);
- 394   1         need_start = !uart_tx_busy;
- 395   1         if (need_start)
- 396   1         {
- 397   2            uart_tx_busy = 1;
- 398   2         }
- 399   1         IE_EA = 1;  // 开中断
- 400   1      
- 401   1         if (need_start)
- 402   1         {
- 403   2            SCON0 |= 0x02;  // 置 TI，触发一次发送中断，开始输出
- 404   2         }
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:23:14 PAGE 8   
+ 343          // 放到 XDATA，避免占用宝贵的内部 DATA RAM
+ 344          #define UART_RX_RING_SIZE  64
+ 345          #define UART_TX_RING_SIZE  64
+ 346          
+ 347          static volatile unsigned char xdata uart_rx_ring[UART_RX_RING_SIZE];
+ 348          static volatile unsigned char uart_rx_head = 0;   // 中断写
+ 349          static volatile unsigned char uart_rx_tail = 0;   // 主循环读
+ 350          
+ 351          static volatile unsigned char xdata uart_tx_ring[UART_TX_RING_SIZE];
+ 352          static volatile unsigned char uart_tx_head = 0;   // 主循环写
+ 353          static volatile unsigned char uart_tx_tail = 0;   // 中断读
+ 354          static volatile bit  uart_tx_busy = 0;            // 1=正在发送中
+ 355          
+ 356          /**
+ 357           * UART0 中断：收字节入 RX 环形缓冲；发字节从 TX 环形缓冲取出。
+ 358           * 这样即便 Timer2 消磁中断疯狂占用 CPU，串口收发也不会丢字节。
+ 359           */
+ 360          SI_INTERRUPT (UART0_ISR, UART0_IRQn)
+ 361          {
+ 362   1         uint8_t SFRPAGE_save = SFRPAGE;
+ 363   1         SFRPAGE = 0x00;
+ 364   1      
+ 365   1         if (SCON0 & 0x01)  // RI0
+ 366   1         {
+ 367   2            SCON0 &= ~0x01;  // clear RI0
+ 368   2            uart_rx_ring[uart_rx_head] = SBUF0;
+ 369   2            uart_rx_head = (unsigned char)((uart_rx_head + 1) % UART_RX_RING_SIZE);
+ 370   2         }
+ 371   1      
+ 372   1         if (SCON0 & 0x02)  // TI0
+ 373   1         {
+ 374   2            SCON0 &= ~0x02;  // clear TI0
+ 375   2            if (uart_tx_head != uart_tx_tail)
+ 376   2            {
+ 377   3               SBUF0 = uart_tx_ring[uart_tx_tail];
+ 378   3               uart_tx_tail = (unsigned char)((uart_tx_tail + 1) % UART_TX_RING_SIZE);
+ 379   3               uart_tx_busy = 1;
+ 380   3            }
+ 381   2            else
+ 382   2            {
+ 383   3               uart_tx_busy = 0;  // 缓冲区空，停止发送
+ 384   3            }
+ 385   2         }
+ 386   1      
+ 387   1         SFRPAGE = SFRPAGE_save;
+ 388   1      }
+ 389          
+ 390          unsigned char uart_getchar(void)
+ 391          {
+ 392   1          unsigned char c1;
+ 393   1          while (uart_rx_head == uart_rx_tail);  // 等待缓冲区有数据
+ 394   1          c1 = uart_rx_ring[uart_rx_tail];
+ 395   1          uart_rx_tail = (unsigned char)((uart_rx_tail + 1) % UART_RX_RING_SIZE);
+ 396   1          return c1;
+ 397   1      }
+ 398          
+ 399          /**
+ 400           * putchar —— 重定向 printf 的输出，改为写入 TX 环形缓冲，由中断发送。
+ 401           */
+ 402          char putchar(char c)
+ 403          {
+ 404   1         bit need_start;
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:34:14 PAGE 8   
 
- 405   1         return c;
- 406   1      }
- 407          
- 408          
- 409          
- 410          typedef struct
- 411          {
- 412             unsigned char data_value[UART_RX_BUFFER_SIZE];
- 413             unsigned char index;
- 414             //类型
- 415             unsigned char type;
- 416             //数据长度
- 417             unsigned char data_length;
- 418             //校验和
- 419             unsigned char checksum;
- 420             //一帧开始标志
- 421             unsigned char frame_start_flag;
- 422             //一帧完结标志
- 423             unsigned char frame_end_flag;
- 424          } uart_rx_buffer_t;
+ 405   1         // 等待 TX 缓冲区有空间
+ 406   1         while ((unsigned char)((uart_tx_head + 1) % UART_TX_RING_SIZE) == uart_tx_tail);
+ 407   1      
+ 408   1         IE_EA = 0;  // 关中断，保护临界区
+ 409   1         uart_tx_ring[uart_tx_head] = (unsigned char)c;
+ 410   1         uart_tx_head = (unsigned char)((uart_tx_head + 1) % UART_TX_RING_SIZE);
+ 411   1         need_start = !uart_tx_busy;
+ 412   1         if (need_start)
+ 413   1         {
+ 414   2            uart_tx_busy = 1;
+ 415   2         }
+ 416   1         IE_EA = 1;  // 开中断
+ 417   1      
+ 418   1         if (need_start)
+ 419   1         {
+ 420   2            SCON0 |= 0x02;  // 置 TI，触发一次发送中断，开始输出
+ 421   2         }
+ 422   1         return c;
+ 423   1      }
+ 424          
  425          
- 426          uart_rx_buffer_t uart_rx_buffer={0};
- 427          
- 428          
- 429          /**
- 430           * CalcChecksum - 计算协议帧的"和校验"补码字节
- 431           */
- 432          unsigned char CalcChecksum(unsigned char type, unsigned char len, unsigned char *data_buf)
- 433          {
- 434   1          unsigned char sum = 0;
- 435   1          unsigned char i;
- 436   1      
- 437   1          sum += type;
- 438   1          sum += len;
- 439   1          for (i = 0; i < len; i++) {
- 440   2              sum += data_buf[i];
- 441   2          }
- 442   1      
- 443   1          return (unsigned char)(0x100 - sum);
- 444   1      }
+ 426          
+ 427          typedef struct
+ 428          {
+ 429             unsigned char data_value[UART_RX_BUFFER_SIZE];
+ 430             unsigned char index;
+ 431             //类型
+ 432             unsigned char type;
+ 433             //数据长度
+ 434             unsigned char data_length;
+ 435             //校验和
+ 436             unsigned char checksum;
+ 437             //一帧开始标志
+ 438             unsigned char frame_start_flag;
+ 439             //一帧完结标志
+ 440             unsigned char frame_end_flag;
+ 441          } uart_rx_buffer_t;
+ 442          
+ 443          uart_rx_buffer_t uart_rx_buffer={0};
+ 444          
  445          
  446          /**
- 447           * VerifyChecksum - 验证协议帧的"和校验"补码字节
+ 447           * CalcChecksum - 计算协议帧的"和校验"补码字节
  448           */
- 449          unsigned char VerifyChecksum(uart_rx_buffer_t *buf)
+ 449          unsigned char CalcChecksum(unsigned char type, unsigned char len, unsigned char *data_buf)
  450          {
  451   1          unsigned char sum = 0;
  452   1          unsigned char i;
  453   1      
- 454   1          sum += buf->type;
- 455   1          sum += buf->data_length;
- 456   1          for (i = 0; i < buf->data_length; i++) {
- 457   2              sum += buf->data_value[3 + i];
+ 454   1          sum += type;
+ 455   1          sum += len;
+ 456   1          for (i = 0; i < len; i++) {
+ 457   2              sum += data_buf[i];
  458   2          }
- 459   1          sum += buf->checksum;
- 460   1      
- 461   1          return (sum == 0) ? 1 : 0;
- 462   1      }
- 463          
- 464          
- 465          
- 466          
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:23:14 PAGE 9   
+ 459   1      
+ 460   1          return (unsigned char)(0x100 - sum);
+ 461   1      }
+ 462          
+ 463          /**
+ 464           * VerifyChecksum - 验证协议帧的"和校验"补码字节
+ 465           */
+ 466          unsigned char VerifyChecksum(uart_rx_buffer_t *buf)
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:34:14 PAGE 9   
 
- 467          void FrameDataAcquisition(void)
- 468          {
- 469   1            unsigned char c;
- 470   1            // 非阻塞：RX 缓冲无数据直接返回，避免主循环卡死在串口等待
- 471   1            if (uart_rx_head == uart_rx_tail)
- 472   1            {
- 473   2               return;
- 474   2            }
- 475   1            c = uart_getchar();
- 476   1      
- 477   1            if (c == FRAME_HEADER && uart_rx_buffer.frame_start_flag == 0)
- 478   1            {
- 479   2               uart_rx_buffer.frame_start_flag = 1;  //一帧开始
- 480   2               //清零
- 481   2               uart_rx_buffer.index = 0;
- 482   2               for (uart_rx_buffer.index = 0; uart_rx_buffer.index < UART_RX_BUFFER_SIZE; uart_rx_buffer.index++
+ 467          {
+ 468   1          unsigned char sum = 0;
+ 469   1          unsigned char i;
+ 470   1      
+ 471   1          sum += buf->type;
+ 472   1          sum += buf->data_length;
+ 473   1          for (i = 0; i < buf->data_length; i++) {
+ 474   2              sum += buf->data_value[3 + i];
+ 475   2          }
+ 476   1          sum += buf->checksum;
+ 477   1      
+ 478   1          return (sum == 0) ? 1 : 0;
+ 479   1      }
+ 480          
+ 481          
+ 482          
+ 483          
+ 484          void FrameDataAcquisition(void)
+ 485          {
+ 486   1            unsigned char c;
+ 487   1            // 非阻塞：RX 缓冲无数据直接返回，避免主循环卡死在串口等待
+ 488   1            if (uart_rx_head == uart_rx_tail)
+ 489   1            {
+ 490   2               return;
+ 491   2            }
+ 492   1            c = uart_getchar();
+ 493   1      
+ 494   1            if (c == FRAME_HEADER && uart_rx_buffer.frame_start_flag == 0)
+ 495   1            {
+ 496   2               uart_rx_buffer.frame_start_flag = 1;  //一帧开始
+ 497   2               //清零
+ 498   2               uart_rx_buffer.index = 0;
+ 499   2               for (uart_rx_buffer.index = 0; uart_rx_buffer.index < UART_RX_BUFFER_SIZE; uart_rx_buffer.index++
              -)
- 483   2               {
- 484   3                  uart_rx_buffer.data_value[uart_rx_buffer.index] = 0;
- 485   3               }
- 486   2               uart_rx_buffer.index = 0;
- 487   2               //记录帧头，写入数据
- 488   2               uart_rx_buffer.data_value[uart_rx_buffer.index++] = c;
- 489   2            }
- 490   1            else if (uart_rx_buffer.index < UART_RX_BUFFER_SIZE && uart_rx_buffer.frame_start_flag == 1)
- 491   1            {
- 492   2               uart_rx_buffer.data_value[uart_rx_buffer.index++] = c;
- 493   2      
- 494   2               //判断是否到类型
- 495   2               if (uart_rx_buffer.index == 2)
- 496   2               {
- 497   3                  uart_rx_buffer.type = c;
- 498   3               }
- 499   2               //判断是否到数据长度
- 500   2               if (uart_rx_buffer.index == 3)
- 501   2               {
- 502   3                  uart_rx_buffer.data_length = c;
- 503   3                  if (uart_rx_buffer.data_length > UART_RX_BUFFER_SIZE - 4) 
- 504   3                  {
- 505   4                     uart_rx_buffer.frame_start_flag = 0;
- 506   4                     uart_rx_buffer.index = 0;
- 507   4                  }
- 508   3               }
- 509   2               //判断一帧是否完结，因为数据格式是AA+（比如01）类型+ （比如02）数据�
+ 500   2               {
+ 501   3                  uart_rx_buffer.data_value[uart_rx_buffer.index] = 0;
+ 502   3               }
+ 503   2               uart_rx_buffer.index = 0;
+ 504   2               //记录帧头，写入数据
+ 505   2               uart_rx_buffer.data_value[uart_rx_buffer.index++] = c;
+ 506   2            }
+ 507   1            else if (uart_rx_buffer.index < UART_RX_BUFFER_SIZE && uart_rx_buffer.frame_start_flag == 1)
+ 508   1            {
+ 509   2               uart_rx_buffer.data_value[uart_rx_buffer.index++] = c;
+ 510   2      
+ 511   2               //判断是否到类型
+ 512   2               if (uart_rx_buffer.index == 2)
+ 513   2               {
+ 514   3                  uart_rx_buffer.type = c;
+ 515   3               }
+ 516   2               //判断是否到数据长度
+ 517   2               if (uart_rx_buffer.index == 3)
+ 518   2               {
+ 519   3                  uart_rx_buffer.data_length = c;
+ 520   3                  if (uart_rx_buffer.data_length > UART_RX_BUFFER_SIZE - 4) 
+ 521   3                  {
+ 522   4                     uart_rx_buffer.frame_start_flag = 0;
+ 523   4                     uart_rx_buffer.index = 0;
+ 524   4                  }
+ 525   3               }
+ 526   2               //判断一帧是否完结，因为数据格式是AA+（比如01）类型+ （比如02）数据�
              -�度 + 数据+ 校验和
- 510   2               if (uart_rx_buffer.index == uart_rx_buffer.data_length + 4)
- 511   2               {
- 512   3                  //校验和
- 513   3                  uart_rx_buffer.checksum = c; 
- 514   3                  //一帧完结
- 515   3                  uart_rx_buffer.frame_end_flag = 1;
- 516   3               }
- 517   2            }
- 518   1      
- 519   1            //拿一帧数据
- 520   1            if (uart_rx_buffer.frame_end_flag == 1)
- 521   1            {
- 522   2               //处理一帧数据-逻辑在这
- 523   2               if (VerifyChecksum(&uart_rx_buffer))  // 校验正确，做类型分发
- 524   2               {
- 525   3                  if (uart_rx_buffer.type == ZERO_CONTROL_TYPE)
- 526   3                  {
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:23:14 PAGE 10  
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:34:14 PAGE 10  
 
- 527   4                     /*对数据长度后面的数据进行拼接*/
- 528   4                     logic_control.zero_control_value = ((uint16_t)uart_rx_buffer.data_value[3]) << 8  | (uart_r
+ 527   2               if (uart_rx_buffer.index == uart_rx_buffer.data_length + 4)
+ 528   2               {
+ 529   3                  //校验和
+ 530   3                  uart_rx_buffer.checksum = c; 
+ 531   3                  //一帧完结
+ 532   3                  uart_rx_buffer.frame_end_flag = 1;
+ 533   3               }
+ 534   2            }
+ 535   1      
+ 536   1            //拿一帧数据
+ 537   1            if (uart_rx_buffer.frame_end_flag == 1)
+ 538   1            {
+ 539   2               //处理一帧数据-逻辑在这
+ 540   2               if (VerifyChecksum(&uart_rx_buffer))  // 校验正确，做类型分发
+ 541   2               {
+ 542   3                  if (uart_rx_buffer.type == ZERO_CONTROL_TYPE)
+ 543   3                  {
+ 544   4                     /*对数据长度后面的数据进行拼接*/
+ 545   4                     logic_control.zero_control_value = ((uint16_t)uart_rx_buffer.data_value[3]) << 8  | (uart_r
              -x_buffer.data_value[4]);
- 529   4                     logic_state = LOGIC_STATE_ZERO_CONTROL;
- 530   4      
- 531   4                  }
- 532   3                  else if (uart_rx_buffer.type == DEFLUX_TYPE)
- 533   3                  {
- 534   4                     logic_state = LOGIC_STATE_DEFLUX;
- 535   4      
- 536   4                  }
- 537   3                  else if (uart_rx_buffer.type == RELAY_SWITCH_TYPE)
- 538   3                  {
- 539   4                     logic_state = LOGIC_STATE_RELAY_SWITCH;
- 540   4                     /*只有一个数据，即数据长度是1*/
- 541   4                     logic_control.relay_status = ((uint16_t)uart_rx_buffer.data_value[3]);
- 542   4                  }
- 543   3                  else if (uart_rx_buffer.type == SET_ZERO_TYPE)
- 544   3                  {
- 545   4                     logic_state = LOGIC_SET_ZERO;  
- 546   4                    
- 547   4                    //记录下当前的adc数据，失败以后可以复原
- 548   4                     last_dac1_value = DAC1_GetCode();
- 549   4                     set_zero_cnt =0;
- 550   4                  }
- 551   3                  else
- 552   3                  {
- 553   4                     logic_state = LOGIC_STATE_IDLE;  //注意logic_state需要在完成后续的状态机后设
+ 546   4                     logic_state = LOGIC_STATE_ZERO_CONTROL;
+ 547   4      
+ 548   4                  }
+ 549   3                  else if (uart_rx_buffer.type == DEFLUX_TYPE)
+ 550   3                  {
+ 551   4                     logic_state = LOGIC_STATE_DEFLUX;
+ 552   4      
+ 553   4                  }
+ 554   3                  else if (uart_rx_buffer.type == RELAY_SWITCH_TYPE)
+ 555   3                  {
+ 556   4                     logic_state = LOGIC_STATE_RELAY_SWITCH;
+ 557   4                     /*只有一个数据，即数据长度是1*/
+ 558   4                     logic_control.relay_status = ((uint16_t)uart_rx_buffer.data_value[3]);
+ 559   4                  }
+ 560   3                  else if (uart_rx_buffer.type == SET_ZERO_TYPE)
+ 561   3                  {
+ 562   4                     logic_state = LOGIC_SET_ZERO;  
+ 563   4                    
+ 564   4                    //记录下当前的adc数据，失败以后可以复原
+ 565   4                     last_dac1_value = DAC1_GetCode();
+ 566   4                     set_zero_cnt =0;
+ 567   4                     zero_OK_cnt =0;
+ 568   4                  }
+ 569   3                  else
+ 570   3                  {
+ 571   4                     logic_state = LOGIC_STATE_IDLE;  //注意logic_state需要在完成后续的状态机后设
              -置为空闲状态
- 554   4                     // RETARGET_PRINTF("\r\n[ERROR] TYPE-ERROR\r\n");
- 555   4                  }
- 556   3               } 
- 557   2               else  // 校验错误
- 558   2               {
- 559   3                 unsigned char chk;
- 560   3                 chk  = uart_rx_buffer.type;
- 561   3                 chk += 0x02;
- 562   3                 chk += 0xFF;
- 563   3                 chk += 0xFF;
- 564   3                 chk  = (unsigned char)(0x100 - chk);
- 565   3      
- 566   3                 RETARGET_PRINTF("%c%c%c%c%c%c", //注意这个得加换行符
- 567   3                     FRAME_HEADER,
- 568   3                     uart_rx_buffer.type,
- 569   3                     0x02,
- 570   3                     0xFF,
- 571   3                     0xFF,
- 572   3                     chk);
- 573   3               }
- 574   2      
- 575   2      
- 576   2               //最终对数据清空
- 577   2               uart_rx_buffer.frame_end_flag = 0;
- 578   2               uart_rx_buffer.index = 0;
- 579   2               uart_rx_buffer.type = 0;
- 580   2               uart_rx_buffer.data_length = 0;
- 581   2               uart_rx_buffer.checksum = 0;
- 582   2               uart_rx_buffer.frame_start_flag = 0;
- 583   2      
- 584   2            }
- 585   1      
- 586   1      
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:23:14 PAGE 11  
+ 572   4                     // RETARGET_PRINTF("\r\n[ERROR] TYPE-ERROR\r\n");
+ 573   4                  }
+ 574   3               } 
+ 575   2               else  // 校验错误
+ 576   2               {
+ 577   3                 unsigned char chk;
+ 578   3                 chk  = uart_rx_buffer.type;
+ 579   3                 chk += 0x02;
+ 580   3                 chk += 0xFF;
+ 581   3                 chk += 0xFF;
+ 582   3                 chk  = (unsigned char)(0x100 - chk);
+ 583   3      
+ 584   3                 RETARGET_PRINTF("%c%c%c%c%c%c", //注意这个得加换行符
+ 585   3                     FRAME_HEADER,
+ 586   3                     uart_rx_buffer.type,
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:34:14 PAGE 11  
 
- 587   1      
- 588   1      
- 589   1      }
- 590          /*****************************************************串口功能实现**********************************
-             -************************* */
- 591          
- 592          
- 593          
- 594          
- 595          
- 596          
- 597          
- 598          
- 599          
- 600          void main (void)
- 601          {
- 602   1      
- 603   1         enter_DefaultMode_from_RESET();
- 604   1         DAC0_Init();
- 605   1         DAC1_Init();
+ 587   3                     0x02,
+ 588   3                     0xFF,
+ 589   3                     0xFF,
+ 590   3                     chk);
+ 591   3               }
+ 592   2      
+ 593   2      
+ 594   2               //最终对数据清空
+ 595   2               uart_rx_buffer.frame_end_flag = 0;
+ 596   2               uart_rx_buffer.index = 0;
+ 597   2               uart_rx_buffer.type = 0;
+ 598   2               uart_rx_buffer.data_length = 0;
+ 599   2               uart_rx_buffer.checksum = 0;
+ 600   2               uart_rx_buffer.frame_start_flag = 0;
+ 601   2      
+ 602   2            }
+ 603   1      
+ 604   1      
+ 605   1      
  606   1      
- 607   1         IE_EA = 1; // Enable global interrupts
- 608   1         IE_ES0 = 1; // Enable UART0 interrupt (收发均用中断+环形缓冲，防止消磁时丢字节)
- 609   1         SFRPAGE = 0x00;
- 610   1         SCON0 = 0x50; // UART mode1, REN=1 (TI 不再预置，发送由 putchar 触发中断)
- 611   1      
- 612   1      
- 613   1      
- 614   1         //flash初始化
- 615   1         {
- 616   2            uint8_t ret;
- 617   2            ret = readLogicControl();
- 618   2            // RETARGET_PRINTF("\r\n[INIT_Flash_ok]\r\n");
- 619   2            //打印信息
- 620   2            // RETARGET_PRINTF("\r\n[INFO] logic_control.zero_control_value = %d, logic_control.relay_status = %
+ 607   1      }
+ 608          /*****************************************************串口功能实现**********************************
+             -************************* */
+ 609          
+ 610          
+ 611          
+ 612          
+ 613          
+ 614          
+ 615          
+ 616          
+ 617          
+ 618          void main (void)
+ 619          {
+ 620   1      
+ 621   1         enter_DefaultMode_from_RESET();
+ 622   1         DAC0_Init();
+ 623   1         DAC1_Init();
+ 624   1      
+ 625   1         IE_EA = 1; // Enable global interrupts
+ 626   1         IE_ES0 = 1; // Enable UART0 interrupt (收发均用中断+环形缓冲，防止消磁时丢字节)
+ 627   1         SFRPAGE = 0x00;
+ 628   1         SCON0 = 0x50; // UART mode1, REN=1 (TI 不再预置，发送由 putchar 触发中断)
+ 629   1      
+ 630   1      
+ 631   1      
+ 632   1         //flash初始化
+ 633   1         {
+ 634   2            uint8_t ret;
+ 635   2            ret = readLogicControl();
+ 636   2            // RETARGET_PRINTF("\r\n[INIT_Flash_ok]\r\n");
+ 637   2            //打印信息
+ 638   2            // RETARGET_PRINTF("\r\n[INFO] logic_control.zero_control_value = %d, logic_control.relay_status = %
              -d\r\n", logic_control.zero_control_value, logic_control.relay_status);
- 621   2         }
- 622   1      
- 623   1         // dac数据初始化
- 624   1         if (logic_control.zero_control_value <= DAC1_MAX_CODE)
- 625   1         {
- 626   2            DAC1_SetCode(logic_control.zero_control_value);
- 627   2         }
- 628   1         else
- 629   1         {
- 630   2            logic_control.zero_control_value = 0;
- 631   2            DAC1_SetCode(0);
- 632   2         }
- 633   1      
- 634   1      
- 635   1         //继电器初始化
- 636   1         {
- 637   2            // 确保 P2.1/P2.2/P2.3 作为普通 GPIO
- 638   2            P2SKIP |= 0x0E;   // bit1 + bit2 + bit3 = 0x02 + 0x04 + 0x08
- 639   2            // 配置 P2.1 P2.2 P2.3 为推挽输出 (开漏则改为 P2MDIN & P2MDOUT 对应位置0)
- 640   2            P2MDIN |= 0x0E;   // 数字输入使能
- 641   2            P2MDOUT |= 0x0E;  // 推挽输出
- 642   2            // P2.3 拉高
- 643   2            P2 |= 0x08;
- 644   2            //根据logic_control.relay_status判断是否开启继电器
- 645   2            if (logic_control.relay_status == 0x00)
- 646   2            {
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:23:14 PAGE 12  
+ 639   2         }
+ 640   1      
+ 641   1         // dac数据初始化
+ 642   1         if (logic_control.zero_control_value <= DAC1_MAX_CODE)
+ 643   1         {
+ 644   2            DAC1_SetCode(logic_control.zero_control_value);
+ 645   2         }
+ 646   1         else
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:34:14 PAGE 12  
 
- 647   3               RELAY_A();
- 648   3            }
- 649   2            else
- 650   2            {
- 651   3               RELAY_B();
- 652   3            }
- 653   2         }
- 654   1      
- 655   1         
- 656   1      
- 657   1         
- 658   1         while (1)
- 659   1         {
- 660   2                       
- 661   2            
- 662   2            FrameDataAcquisition();  //串口接收数据
- 663   2      
- 664   2            //根据逻辑状态处理数据
- 665   2            switch (logic_state)
- 666   2            {
- 667   3              
- 668   3              
- 669   3              
- 670   3               case LOGIC_STATE_IDLE:  //空闲状态
- 671   3                  break;
- 672   3      
- 673   3               
- 674   3               case LOGIC_STATE_ZERO_CONTROL:  //零点控制状态
- 675   3      
- 676   3                  if(logic_control.zero_control_value>=DAC1_MIN_CODE && logic_control.zero_control_value<=DAC1_M
+ 647   1         {
+ 648   2            logic_control.zero_control_value = 0;
+ 649   2            DAC1_SetCode(0);
+ 650   2         }
+ 651   1      
+ 652   1      
+ 653   1         //继电器初始化
+ 654   1         {
+ 655   2            // 确保 P2.1/P2.2/P2.3 作为普通 GPIO
+ 656   2            P2SKIP |= 0x0E;   // bit1 + bit2 + bit3 = 0x02 + 0x04 + 0x08
+ 657   2            // 配置 P2.1 P2.2 P2.3 为推挽输出 (开漏则改为 P2MDIN & P2MDOUT 对应位置0)
+ 658   2            P2MDIN |= 0x0E;   // 数字输入使能
+ 659   2            P2MDOUT |= 0x0E;  // 推挽输出
+ 660   2            // P2.3 拉高
+ 661   2            P2 |= 0x08;
+ 662   2            //根据logic_control.relay_status判断是否开启继电器
+ 663   2            if (logic_control.relay_status == 0x00)
+ 664   2            {
+ 665   3               RELAY_A();
+ 666   3            }
+ 667   2            else
+ 668   2            {
+ 669   3               RELAY_B();
+ 670   3            }
+ 671   2         }
+ 672   1      
+ 673   1         
+ 674   1      
+ 675   1         
+ 676   1         while (1)
+ 677   1         {
+ 678   2                       
+ 679   2            
+ 680   2            FrameDataAcquisition();  //串口接收数据
+ 681   2      
+ 682   2            //根据逻辑状态处理数据
+ 683   2            switch (logic_state)
+ 684   2            {
+ 685   3              
+ 686   3              
+ 687   3              
+ 688   3               case LOGIC_STATE_IDLE:  //空闲状态
+ 689   3                  break;
+ 690   3      
+ 691   3               
+ 692   3               case LOGIC_STATE_ZERO_CONTROL:  //零点控制状态
+ 693   3      
+ 694   3                  if(logic_control.zero_control_value>=DAC1_MIN_CODE && logic_control.zero_control_value<=DAC1_M
              -AX_CODE)
- 677   3                  {
- 678   4                     unsigned char hi, lo, chk;
- 679   4                     DAC1_SetCode(logic_control.zero_control_value);
- 680   4                     saveLogicControl();
- 681   4                     // RETARGET_PRINTF("\r\n[INFO] zero_control_value = %d\r\n", logic_control.zero_control_val
+ 695   3                  {
+ 696   4                     unsigned char hi, lo, chk;
+ 697   4                     DAC1_SetCode(logic_control.zero_control_value);
+ 698   4                     saveLogicControl();
+ 699   4                     // RETARGET_PRINTF("\r\n[INFO] zero_control_value = %d\r\n", logic_control.zero_control_val
              -ue);
- 682   4      
- 683   4                     hi  = (unsigned char)((logic_control.zero_control_value >> 8) & 0xFF);
- 684   4                     lo  = (unsigned char)(logic_control.zero_control_value & 0xFF);
- 685   4                     chk = (unsigned char)(0x100 - (ZERO_CONTROL_TYPE + 0x02 + hi + lo));
- 686   4                     RETARGET_PRINTF("%c%c%c%c%c%c",
- 687   4                         FRAME_HEADER, ZERO_CONTROL_TYPE, 0x02, hi, lo, chk);
- 688   4                  }
- 689   3                  else
- 690   3                  {
- 691   4                     RETARGET_PRINTF("\r\n[ERROR] ZERO_CONTROL_VALUE_ERROR\r\n");
- 692   4                  }
- 693   3                  logic_state = LOGIC_STATE_IDLE; 
- 694   3                  break;
- 695   3                  
- 696   3                  
- 697   3                  
- 698   3               case LOGIC_STATE_DEFLUX:  //消磁状态
- 699   3                  deflux_trigger = 1;
- 700   3                  // RETARGET_PRINTF("\r\n[INFO] DEFLUX_DONE\r\n");
- 701   3                  {
- 702   4                     unsigned char chk;
- 703   4                     chk = (unsigned char)(0x100 - (DEFLUX_TYPE + 0x00));
- 704   4                     RETARGET_PRINTF("%c%c%c%c",
- 705   4                         FRAME_HEADER, DEFLUX_TYPE, 0x00, chk);
+ 700   4      
+ 701   4                     hi  = (unsigned char)((logic_control.zero_control_value >> 8) & 0xFF);
+ 702   4                     lo  = (unsigned char)(logic_control.zero_control_value & 0xFF);
+ 703   4                     chk = (unsigned char)(0x100 - (ZERO_CONTROL_TYPE + 0x02 + hi + lo));
+ 704   4                     RETARGET_PRINTF("%c%c%c%c%c%c",
+ 705   4                         FRAME_HEADER, ZERO_CONTROL_TYPE, 0x02, hi, lo, chk);
  706   4                  }
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:23:14 PAGE 13  
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:34:14 PAGE 13  
 
- 707   3                  logic_state = LOGIC_STATE_IDLE;
- 708   3                  break;
- 709   3                  
- 710   3                  
- 711   3                  
- 712   3               case LOGIC_STATE_RELAY_SWITCH:  //继电器状态
- 713   3                  /*在这里写继电器的逻辑，也就是控制继电器的开闭*/
- 714   3                  if (logic_control.relay_status == 0x00)
- 715   3                  {
- 716   4                     unsigned char chk;
- 717   4                     RELAY_A();
- 718   4                     saveLogicControl();
- 719   4                     /*发送成功的帧*/
- 720   4                     // RETARGET_PRINTF("\r\n[INFO] relay_status = %d\r\n", logic_control.relay_status);
- 721   4                     // RETARGET_PRINTF("\r\n[INFO] RELAY_A\r\n");
- 722   4                     chk = (unsigned char)(0x100 - (RELAY_SWITCH_TYPE + 0x01 + 0x00));
- 723   4                     RETARGET_PRINTF("%c%c%c%c%c",
- 724   4                         FRAME_HEADER, RELAY_SWITCH_TYPE, 0x01, 0x00, chk);
- 725   4                  }
- 726   3                  else if (logic_control.relay_status == 0x01)
- 727   3                  {
- 728   4                     unsigned char chk;
- 729   4                     RELAY_B();
- 730   4                     saveLogicControl();
- 731   4                     /*发送成功的帧*/
- 732   4                     // RETARGET_PRINTF("\r\n[INFO] relay_status = %d\r\n", logic_control.relay_status);
- 733   4                     // RETARGET_PRINTF("\r\n[INFO] RELAY_B\r\n");
- 734   4                     chk = (unsigned char)(0x100 - (RELAY_SWITCH_TYPE + 0x01 + 0x01));
- 735   4                     RETARGET_PRINTF("%c%c%c%c%c",
- 736   4                         FRAME_HEADER, RELAY_SWITCH_TYPE, 0x01, 0x01, chk);
- 737   4                  }
- 738   3                  else
- 739   3                  {
- 740   4                     /*发送失败的帧*/
- 741   4                     RETARGET_PRINTF("\r\n[ERROR] RELAY_SWITCH_FAILED\r\n");
- 742   4                  }
- 743   3                  logic_state = LOGIC_STATE_IDLE; 
- 744   3                  break;
- 745   3                  
- 746   3                  
- 747   3                  
- 748   3                 case LOGIC_SET_ZERO:  //调零操作
- 749   3                 {
- 750   4                    uint8_t zero_ret; //调零返回值
- 751   4                    adc_zero_enable = 1;
- 752   4                    zero_ret = set_zero();
- 753   4                    if(zero_ret ==1 )      //发送成功
- 754   4                    {
- 755   5                      //保存数据
- 756   5                      logic_control.zero_control_value = DAC1_GetCode();
- 757   5                      saveLogicControl();
- 758   5                      
- 759   5                      logic_state = LOGIC_STATE_IDLE; 
- 760   5                      {
- 761   6                       unsigned char chk;
- 762   6                       chk = (unsigned char)(0x100 - (SET_ZERO_TYPE + 0x01 + 0x01));
- 763   6                       RETARGET_PRINTF("%c%c%c%c",
- 764   6                           FRAME_HEADER, SET_ZERO_TYPE, 0x01 ,0x01, chk);
- 765   6                      }   
- 766   5                    }
- 767   4                    else if(zero_ret ==2 ) //发送失败
- 768   4                    {
-C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:23:14 PAGE 14  
+ 707   3                  else
+ 708   3                  {
+ 709   4                     RETARGET_PRINTF("\r\n[ERROR] ZERO_CONTROL_VALUE_ERROR\r\n");
+ 710   4                  }
+ 711   3                  logic_state = LOGIC_STATE_IDLE; 
+ 712   3                  break;
+ 713   3                  
+ 714   3                  
+ 715   3                  
+ 716   3               case LOGIC_STATE_DEFLUX:  //消磁状态
+ 717   3                  deflux_trigger = 1;
+ 718   3                  // RETARGET_PRINTF("\r\n[INFO] DEFLUX_DONE\r\n");
+ 719   3                  {
+ 720   4                     unsigned char chk;
+ 721   4                     chk = (unsigned char)(0x100 - (DEFLUX_TYPE + 0x00));
+ 722   4                     RETARGET_PRINTF("%c%c%c%c",
+ 723   4                         FRAME_HEADER, DEFLUX_TYPE, 0x00, chk);
+ 724   4                  }
+ 725   3                  logic_state = LOGIC_STATE_IDLE;
+ 726   3                  break;
+ 727   3                  
+ 728   3                  
+ 729   3                  
+ 730   3               case LOGIC_STATE_RELAY_SWITCH:  //继电器状态
+ 731   3                  /*在这里写继电器的逻辑，也就是控制继电器的开闭*/
+ 732   3                  if (logic_control.relay_status == 0x00)
+ 733   3                  {
+ 734   4                     unsigned char chk;
+ 735   4                     RELAY_A();
+ 736   4                     saveLogicControl();
+ 737   4                     /*发送成功的帧*/
+ 738   4                     // RETARGET_PRINTF("\r\n[INFO] relay_status = %d\r\n", logic_control.relay_status);
+ 739   4                     // RETARGET_PRINTF("\r\n[INFO] RELAY_A\r\n");
+ 740   4                     chk = (unsigned char)(0x100 - (RELAY_SWITCH_TYPE + 0x01 + 0x00));
+ 741   4                     RETARGET_PRINTF("%c%c%c%c%c",
+ 742   4                         FRAME_HEADER, RELAY_SWITCH_TYPE, 0x01, 0x00, chk);
+ 743   4                  }
+ 744   3                  else if (logic_control.relay_status == 0x01)
+ 745   3                  {
+ 746   4                     unsigned char chk;
+ 747   4                     RELAY_B();
+ 748   4                     saveLogicControl();
+ 749   4                     /*发送成功的帧*/
+ 750   4                     // RETARGET_PRINTF("\r\n[INFO] relay_status = %d\r\n", logic_control.relay_status);
+ 751   4                     // RETARGET_PRINTF("\r\n[INFO] RELAY_B\r\n");
+ 752   4                     chk = (unsigned char)(0x100 - (RELAY_SWITCH_TYPE + 0x01 + 0x01));
+ 753   4                     RETARGET_PRINTF("%c%c%c%c%c",
+ 754   4                         FRAME_HEADER, RELAY_SWITCH_TYPE, 0x01, 0x01, chk);
+ 755   4                  }
+ 756   3                  else
+ 757   3                  {
+ 758   4                     /*发送失败的帧*/
+ 759   4                     RETARGET_PRINTF("\r\n[ERROR] RELAY_SWITCH_FAILED\r\n");
+ 760   4                  }
+ 761   3                  logic_state = LOGIC_STATE_IDLE; 
+ 762   3                  break;
+ 763   3                  
+ 764   3                  
+ 765   3                  
+ 766   3                 case LOGIC_SET_ZERO:  //调零操作
+ 767   3                 {
+ 768   4                    uint8_t zero_ret; //调零返回值
+C51 COMPILER V9.60.0.0   EFM8LB1_UART_STDIO                                                10/12/2026 15:34:14 PAGE 14  
 
- 769   5                    
- 770   5                      //保存数据
- 771   5                      logic_control.zero_control_value = last_dac1_value;
- 772   5                      saveLogicControl();                 
- 773   5                      
- 774   5                      logic_state = LOGIC_STATE_IDLE; 
- 775   5                      {
- 776   6                       unsigned char chk;
- 777   6                       chk = (unsigned char)(0x100 - (SET_ZERO_TYPE + 0x01 + 0x00));
- 778   6                       RETARGET_PRINTF("%c%c%c%c",
- 779   6                           FRAME_HEADER, SET_ZERO_TYPE, 0x01 ,0x00, chk);
- 780   6                      }   
- 781   5                    }
- 782   4                }
- 783   3                break;            
- 784   3                  
- 785   3                  
- 786   3            }
- 787   2      
- 788   2         }
- 789   1      }
+ 769   4                    adc_zero_enable = 1;
+ 770   4                    zero_ret = set_zero();
+ 771   4                    if(zero_ret ==1 )      //发送成功
+ 772   4                    {
+ 773   5                      //保存数据
+ 774   5                      logic_control.zero_control_value = DAC1_GetCode();
+ 775   5                      saveLogicControl();
+ 776   5                      
+ 777   5                      logic_state = LOGIC_STATE_IDLE; 
+ 778   5                      {
+ 779   6                       unsigned char chk;
+ 780   6                       chk = (unsigned char)(0x100 - (SET_ZERO_TYPE + 0x01 + 0x01));
+ 781   6                       RETARGET_PRINTF("%c%c%c%c%c",
+ 782   6                           FRAME_HEADER, SET_ZERO_TYPE, 0x01 ,0x01, chk);
+ 783   6                      }   
+ 784   5                    }
+ 785   4                    else if(zero_ret ==2 ) //发送失败
+ 786   4                    {
+ 787   5                    
+ 788   5                      //保存数据
+ 789   5                      logic_control.zero_control_value = last_dac1_value;
+ 790   5                      saveLogicControl();                 
+ 791   5                      
+ 792   5                      logic_state = LOGIC_STATE_IDLE; 
+ 793   5                      {
+ 794   6                       unsigned char chk;
+ 795   6                       chk = (unsigned char)(0x100 - (SET_ZERO_TYPE + 0x01 + 0x00));
+ 796   6                       RETARGET_PRINTF("%c%c%c%c%c",
+ 797   6                           FRAME_HEADER, SET_ZERO_TYPE, 0x01 ,0x00, chk);
+ 798   6                      }   
+ 799   5                    }
+ 800   4                }
+ 801   3                break;            
+ 802   3                  
+ 803   3                  
+ 804   3            }
+ 805   2      
+ 806   2         }
+ 807   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1667    ----
-   CONSTANT SIZE    =    140    ----
+   CODE SIZE        =   1647    ----
+   CONSTANT SIZE    =    102    ----
    XDATA SIZE       =    128    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =     47      44
+   DATA SIZE        =     49      44
    IDATA SIZE       =   ----    ----
    BIT SIZE         =      1       1
 END OF MODULE INFORMATION.
