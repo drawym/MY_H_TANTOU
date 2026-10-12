@@ -1,0 +1,551 @@
+
+#include <SI_EFM8LB1_Register_Enums.h>
+#include "retargetserial.h"
+#include "InitDevice.h"
+#include "EFM8LB1_FlashPrimitives.h"
+#include "EFM8LB1_FlashUtils.h"
+#include "EFM8LB1_DAC.h"
+#include "string.h"
+
+
+/*****************************************************瀹忓畾涔夐儴鍒?********************************************************** */
+// EFM8LB10F16 鏄?16KB Flash 锛屾渶鍚庝竴椤靛湴鍧€涓?0x3E00锛堥〉澶у皬512瀛楄妭锛?// 杩欓噷浣跨敤鍊掓暟绗?椤电殑璧峰鍦板潃瀛樻斁鐢ㄦ埛鏁版嵁
+#define FLASH_STORAGE_ADDR  0x3E00
+
+//鎺ユ敹鐨勬渶闀挎暟鎹?#define UART_RX_BUFFER_SIZE 20 
+//瀹氫箟甯уご
+#define FRAME_HEADER 0xAA
+//瀹氫箟闆剁偣鎺у埗鐨勭被鍨?#define ZERO_CONTROL_TYPE 0x05
+//瀹氫箟娑堢鍔熻兘鐨勭被鍨?#define DEFLUX_TYPE 0xC0
+//瀹氫箟缁х數鍣ㄥ垏鎹㈢殑绫诲瀷
+#define RELAY_SWITCH_TYPE 0xD0
+
+
+		
+/*****************************************************瀹忓畾涔夐儴鍒?********************************************************** */		
+		
+
+
+/*****************************************************澶栭儴澹版槑閮ㄥ垎*********************************************************** */		
+
+extern volatile uint32_t counter ;//寤舵椂鍑芥暟-涓柇閲岄潰
+extern volatile uint8_t deflux_trigger ;   // 娑堢鐨勯€昏緫锛岃缃负1鍒欒涓€娆?涓柇閲岄潰
+/*****************************************************澶栭儴澹版槑閮ㄥ垎*********************************************************** */		
+
+
+
+
+/*****************************************************寤舵椂鍑芥暟*********************************************************** */		
+uint32_t start_counter =0;
+void delay_ms(uint16_t ms)
+{
+	start_counter = counter;
+	while((counter - start_counter ) < (2*ms))
+	{
+	};
+}
+		
+
+
+
+
+
+/*****************************************************閫昏緫鎺у埗*********************************************************** */
+typedef struct
+{
+   uint16_t zero_control_value; //闆剁偣鎺у埗鍊?   uint16_t relay_status; //缁х數鍣ㄧ姸鎬?00鏄。浣岮 01鏄。浣岯
+} logic_control_t;
+
+logic_control_t logic_control={0};
+
+typedef enum
+{
+   LOGIC_STATE_IDLE = 0,  //绌洪棽
+   LOGIC_STATE_ZERO_CONTROL = 1,  //闆剁偣鎺у埗
+   LOGIC_STATE_DEFLUX = 2,  //娑堢鍔熻兘
+   LOGIC_STATE_RELAY_SWITCH = 3,  //缁х數鍣ㄥ垏鎹?} logic_state_t;
+
+logic_state_t logic_state; //鐘舵€佹満鎵ц鐘舵€?/*****************************************************閫昏緫鎺у埗*********************************************************** */
+
+
+
+
+
+
+
+
+/*****************************************************flash瀹炵幇*********************************************************** */
+typedef struct
+{
+   logic_control_t mydata;
+} flash_storage_t;
+
+static uint8_t flashChecksum(uint8_t *buf, uint8_t len)
+{
+   uint8_t sum = 0;
+   uint8_t i;
+   for (i = 0; i < len; i++)
+   {
+      sum += buf[i];
+   }
+   return sum;
+}
+
+void saveLogicControl(void)
+{
+   flash_storage_t storage;
+   uint8_t *p;
+   uint16_t i;
+   FLADDR addr = FLASH_STORAGE_ADDR;
+
+   storage.mydata = logic_control;
+
+   FLASH_PageErase(FLASH_STORAGE_ADDR);
+
+   p = (uint8_t *)&storage;
+   for (i = 0; i < sizeof(flash_storage_t); i++)
+   {
+      FLASH_ByteWrite(addr + i, p[i]);
+   }
+}
+
+uint8_t readLogicControl(void)
+{
+   flash_storage_t storage;
+   uint8_t *p;
+   uint16_t i;
+   FLADDR addr = FLASH_STORAGE_ADDR;
+
+   p = (uint8_t *)&storage;
+   for (i = 0; i < sizeof(flash_storage_t); i++)
+   {
+      p[i] = FLASH_ByteRead(addr + i);
+   }
+
+   logic_control = storage.mydata;
+   return 1;
+}
+
+/*****************************************************flash瀹炵幇*********************************************************** */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*****************************************************缁х數鍣ㄦ帶鍒?********************************************************** */
+
+void RELAY_A(void)
+{
+   P2 |= 0x02;    // PY_A1 P2.1  杈撳嚭楂?
+   delay_ms(1);
+
+   P2 &= ~0x04; //  RY_A0 = P2.2 杈撳嚭浣?
+   delay_ms(100);
+
+   P2 |= 0x04;    // PY_A0 P2.2  杈撳嚭楂?}
+
+
+void RELAY_B(void)
+{
+   P2 &= ~0x02;    // PY_A1 P2.1  杈撳嚭浣?
+   delay_ms(1);
+
+    P2 &= ~0x04; //  RY_A0 = P2.2 杈撳嚭浣?
+   delay_ms(100);
+
+   P2 |= 0x04;    // PY_A0 P2.2  杈撳嚭楂?}
+
+/*****************************************************缁х數鍣ㄦ帶鍒?********************************************************** */
+
+
+
+
+
+
+
+
+
+
+/*****************************************************涓插彛鍔熻兘瀹炵幇*********************************************************** */
+
+// UART 鎺ユ敹 / 鍙戦€佺幆褰㈢紦鍐插尯锛堜腑鏂笌涓诲惊鐜箣闂翠紶閫掓暟鎹級
+// 鏀惧埌 XDATA锛岄伩鍏嶅崰鐢ㄥ疂璐电殑鍐呴儴 DATA RAM
+#define UART_RX_RING_SIZE  64
+#define UART_TX_RING_SIZE  64
+
+static volatile unsigned char xdata uart_rx_ring[UART_RX_RING_SIZE];
+static volatile unsigned char uart_rx_head = 0;   // 涓柇鍐?static volatile unsigned char uart_rx_tail = 0;   // 涓诲惊鐜
+
+static volatile unsigned char xdata uart_tx_ring[UART_TX_RING_SIZE];
+static volatile unsigned char uart_tx_head = 0;   // 涓诲惊鐜啓
+static volatile unsigned char uart_tx_tail = 0;   // 涓柇璇?static volatile bit  uart_tx_busy = 0;            // 1=姝ｅ湪鍙戦€佷腑
+
+/**
+ * UART0 涓柇锛氭敹瀛楄妭鍏?RX 鐜舰缂撳啿锛涘彂瀛楄妭浠?TX 鐜舰缂撳啿鍙栧嚭銆? * 杩欐牱鍗充究 Timer2 娑堢涓柇鐤媯鍗犵敤 CPU锛屼覆鍙ｆ敹鍙戜篃涓嶄細涓㈠瓧鑺傘€? */
+SI_INTERRUPT (UART0_ISR, UART0_IRQn)
+{
+   uint8_t SFRPAGE_save = SFRPAGE;
+   SFRPAGE = 0x00;
+
+   if (SCON0 & 0x01)  // RI0
+   {
+      SCON0 &= ~0x01;  // clear RI0
+      uart_rx_ring[uart_rx_head] = SBUF0;
+      uart_rx_head = (unsigned char)((uart_rx_head + 1) % UART_RX_RING_SIZE);
+   }
+
+   if (SCON0 & 0x02)  // TI0
+   {
+      SCON0 &= ~0x02;  // clear TI0
+      if (uart_tx_head != uart_tx_tail)
+      {
+         SBUF0 = uart_tx_ring[uart_tx_tail];
+         uart_tx_tail = (unsigned char)((uart_tx_tail + 1) % UART_TX_RING_SIZE);
+         uart_tx_busy = 1;
+      }
+      else
+      {
+         uart_tx_busy = 0;  // 缂撳啿鍖虹┖锛屽仠姝㈠彂閫?      }
+   }
+
+   SFRPAGE = SFRPAGE_save;
+}
+
+unsigned char uart_getchar(void)
+{
+    unsigned char c1;
+    while (uart_rx_head == uart_rx_tail);  // 绛夊緟缂撳啿鍖烘湁鏁版嵁
+    c1 = uart_rx_ring[uart_rx_tail];
+    uart_rx_tail = (unsigned char)((uart_rx_tail + 1) % UART_RX_RING_SIZE);
+    return c1;
+}
+
+/**
+ * putchar 鈥斺€?閲嶅畾鍚?printf 鐨勮緭鍑猴紝鏀逛负鍐欏叆 TX 鐜舰缂撳啿锛岀敱涓柇鍙戦€併€? */
+char putchar(char c)
+{
+   bit need_start;
+   // 绛夊緟 TX 缂撳啿鍖烘湁绌洪棿
+   while ((unsigned char)((uart_tx_head + 1) % UART_TX_RING_SIZE) == uart_tx_tail);
+
+   IE_EA = 0;  // 鍏充腑鏂紝淇濇姢涓寸晫鍖?   uart_tx_ring[uart_tx_head] = (unsigned char)c;
+   uart_tx_head = (unsigned char)((uart_tx_head + 1) % UART_TX_RING_SIZE);
+   need_start = !uart_tx_busy;
+   if (need_start)
+   {
+      uart_tx_busy = 1;
+   }
+   IE_EA = 1;  // 寮€涓柇
+
+   if (need_start)
+   {
+      SCON0 |= 0x02;  // 缃?TI锛岃Е鍙戜竴娆″彂閫佷腑鏂紝寮€濮嬭緭鍑?   }
+   return c;
+}
+
+
+
+typedef struct
+{
+   unsigned char data_value[UART_RX_BUFFER_SIZE];
+   unsigned char index;
+   //绫诲瀷
+   unsigned char type;
+   //鏁版嵁闀垮害
+   unsigned char data_length;
+   //鏍￠獙鍜?   unsigned char checksum;
+   //涓€甯у紑濮嬫爣蹇?   unsigned char frame_start_flag;
+   //涓€甯у畬缁撴爣蹇?   unsigned char frame_end_flag;
+} uart_rx_buffer_t;
+
+uart_rx_buffer_t uart_rx_buffer={0};
+
+
+/**
+ * CalcChecksum - 璁＄畻鍗忚甯х殑"鍜屾牎楠?琛ョ爜瀛楄妭
+ */
+unsigned char CalcChecksum(unsigned char type, unsigned char len, unsigned char *data_buf)
+{
+    unsigned char sum = 0;
+    unsigned char i;
+
+    sum += type;
+    sum += len;
+    for (i = 0; i < len; i++) {
+        sum += data_buf[i];
+    }
+
+    return (unsigned char)(0x100 - sum);
+}
+
+/**
+ * VerifyChecksum - 楠岃瘉鍗忚甯х殑"鍜屾牎楠?琛ョ爜瀛楄妭
+ */
+unsigned char VerifyChecksum(uart_rx_buffer_t *buf)
+{
+    unsigned char sum = 0;
+    unsigned char i;
+
+    sum += buf->type;
+    sum += buf->data_length;
+    for (i = 0; i < buf->data_length; i++) {
+        sum += buf->data_value[3 + i];
+    }
+    sum += buf->checksum;
+
+    return (sum == 0) ? 1 : 0;
+}
+
+
+
+
+void FrameDataAcquisition(void)
+{
+      unsigned char c;
+      c = uart_getchar();
+
+      if (c == FRAME_HEADER && uart_rx_buffer.frame_start_flag == 0)
+      {
+         uart_rx_buffer.frame_start_flag = 1;  //涓€甯у紑濮?         //娓呴浂
+         uart_rx_buffer.index = 0;
+         for (uart_rx_buffer.index = 0; uart_rx_buffer.index < UART_RX_BUFFER_SIZE; uart_rx_buffer.index++)
+         {
+            uart_rx_buffer.data_value[uart_rx_buffer.index] = 0;
+         }
+         uart_rx_buffer.index = 0;
+         //璁板綍甯уご锛屽啓鍏ユ暟鎹?         uart_rx_buffer.data_value[uart_rx_buffer.index++] = c;
+      }
+      else if (uart_rx_buffer.index < UART_RX_BUFFER_SIZE && uart_rx_buffer.frame_start_flag == 1)
+      {
+         uart_rx_buffer.data_value[uart_rx_buffer.index++] = c;
+
+         //鍒ゆ柇鏄惁鍒扮被鍨?         if (uart_rx_buffer.index == 2)
+         {
+            uart_rx_buffer.type = c;
+         }
+         //鍒ゆ柇鏄惁鍒版暟鎹暱搴?         if (uart_rx_buffer.index == 3)
+         {
+            uart_rx_buffer.data_length = c;
+            if (uart_rx_buffer.data_length > UART_RX_BUFFER_SIZE - 4) 
+            {
+               uart_rx_buffer.frame_start_flag = 0;
+               uart_rx_buffer.index = 0;
+            }
+         }
+         //鍒ゆ柇涓€甯ф槸鍚﹀畬缁擄紝鍥犱负鏁版嵁鏍煎紡鏄疉A+锛堟瘮濡?1锛夌被鍨? 锛堟瘮濡?2锛夋暟鎹暱搴?+ 鏁版嵁+ 鏍￠獙鍜?         if (uart_rx_buffer.index == uart_rx_buffer.data_length + 4)
+         {
+            //鏍￠獙鍜?            uart_rx_buffer.checksum = c; 
+            //涓€甯у畬缁?            uart_rx_buffer.frame_end_flag = 1;
+         }
+      }
+
+      //鎷夸竴甯ф暟鎹?      if (uart_rx_buffer.frame_end_flag == 1)
+      {
+         //澶勭悊涓€甯ф暟鎹?閫昏緫鍦ㄨ繖
+         if (VerifyChecksum(&uart_rx_buffer))  // 鏍￠獙姝ｇ‘锛屽仛绫诲瀷鍒嗗彂
+         {
+            if (uart_rx_buffer.type == ZERO_CONTROL_TYPE)
+            {
+               /*瀵规暟鎹暱搴﹀悗闈㈢殑鏁版嵁杩涜鎷兼帴*/
+               logic_control.zero_control_value = ((uint16_t)uart_rx_buffer.data_value[3]) << 8  | (uart_rx_buffer.data_value[4]);
+               logic_state = LOGIC_STATE_ZERO_CONTROL;
+
+            }
+            else if (uart_rx_buffer.type == DEFLUX_TYPE)
+            {
+               logic_state = LOGIC_STATE_DEFLUX;
+
+            }
+            else if (uart_rx_buffer.type == RELAY_SWITCH_TYPE)
+            {
+               logic_state = LOGIC_STATE_RELAY_SWITCH;
+               /*鍙湁涓€涓暟鎹紝鍗虫暟鎹暱搴︽槸1*/
+               logic_control.relay_status = ((uint16_t)uart_rx_buffer.data_value[3]);
+            }
+            else
+            {
+               logic_state = LOGIC_STATE_IDLE;  //娉ㄦ剰logic_state闇€瑕佸湪瀹屾垚鍚庣画鐨勭姸鎬佹満鍚庤缃负绌洪棽鐘舵€?               // RETARGET_PRINTF("\r\n[ERROR] TYPE-ERROR\r\n");
+            }
+         } 
+         else  // 鏍￠獙閿欒
+         {
+           unsigned char chk;
+           chk  = uart_rx_buffer.type;
+           chk += 0x02;
+           chk += 0xFF;
+           chk += 0xFF;
+           chk  = (unsigned char)(0x100 - chk);
+
+           RETARGET_PRINTF("%c%c%c%c%c%c", //娉ㄦ剰杩欎釜寰楀姞鎹㈣绗?               FRAME_HEADER,
+               uart_rx_buffer.type,
+               0x02,
+               0xFF,
+               0xFF,
+               chk);
+         }
+
+
+         //鏈€缁堝鏁版嵁娓呯┖
+         uart_rx_buffer.frame_end_flag = 0;
+         uart_rx_buffer.index = 0;
+         uart_rx_buffer.type = 0;
+         uart_rx_buffer.data_length = 0;
+         uart_rx_buffer.checksum = 0;
+         uart_rx_buffer.frame_start_flag = 0;
+
+      }
+
+
+
+
+}
+/*****************************************************涓插彛鍔熻兘瀹炵幇*********************************************************** */
+
+
+
+
+
+
+
+void main (void)
+{
+
+   enter_DefaultMode_from_RESET();
+   DAC0_Init();
+   DAC1_Init();
+
+   IE_EA = 1; // Enable global interrupts
+   IE_ES0 = 1; // Enable UART0 interrupt (鏀跺彂鍧囩敤涓柇+鐜舰缂撳啿锛岄槻姝㈡秷纾佹椂涓㈠瓧鑺?
+   SFRPAGE = 0x00;
+   SCON0 = 0x50; // UART mode1, REN=1 (TI 涓嶅啀棰勭疆锛屽彂閫佺敱 putchar 瑙﹀彂涓柇)
+
+
+   //flash鍒濆鍖?   {
+      uint8_t ret;
+      ret = readLogicControl();
+      // RETARGET_PRINTF("\r\n[INIT_Flash_ok]\r\n");
+      //鎵撳嵃淇℃伅
+      // RETARGET_PRINTF("\r\n[INFO] logic_control.zero_control_value = %d, logic_control.relay_status = %d\r\n", logic_control.zero_control_value, logic_control.relay_status);
+   }
+
+   // dac鏁版嵁鍒濆鍖?   if (logic_control.zero_control_value <= DAC1_MAX_CODE)
+   {
+      DAC1_SetCode(logic_control.zero_control_value);
+   }
+   else
+   {
+      logic_control.zero_control_value = 0;
+      DAC1_SetCode(0);
+   }
+
+
+   //缁х數鍣ㄥ垵濮嬪寲
+   {
+      // 纭繚 P2.1/P2.2/P2.3 浣滀负鏅€?GPIO
+      P2SKIP |= 0x0E;   // bit1 + bit2 + bit3 = 0x02 + 0x04 + 0x08
+      // 閰嶇疆 P2.1 P2.2 P2.3 涓烘帹鎸借緭鍑?(寮€婕忓垯鏀逛负 P2MDIN & P2MDOUT 瀵瑰簲浣嶇疆0)
+      P2MDIN |= 0x0E;   // 鏁板瓧杈撳叆浣胯兘
+      P2MDOUT |= 0x0E;  // 鎺ㄦ尳杈撳嚭
+      // P2.3 鎷夐珮
+      P2 |= 0x08;
+      //鏍规嵁logic_control.relay_status鍒ゆ柇鏄惁寮€鍚户鐢靛櫒
+      if (logic_control.relay_status == 0x00)
+      {
+         RELAY_A();
+      }
+      else
+      {
+         RELAY_B();
+      }
+   }
+
+
+
+   while (1)
+   {
+		 
+		//璇诲彇ADC鏁版嵁
+		 
+		 
+      FrameDataAcquisition();  //涓插彛鎺ユ敹鏁版嵁
+
+      //鏍规嵁閫昏緫鐘舵€佸鐞嗘暟鎹?      switch (logic_state)
+      {
+         case LOGIC_STATE_IDLE:  //绌洪棽鐘舵€?            break;
+
+         case LOGIC_STATE_ZERO_CONTROL:  //闆剁偣鎺у埗鐘舵€?
+            if(logic_control.zero_control_value>=DAC1_MIN_CODE && logic_control.zero_control_value<=DAC1_MAX_CODE)
+            {
+               unsigned char hi, lo, chk;
+               DAC1_SetCode(logic_control.zero_control_value);
+               saveLogicControl();
+               // RETARGET_PRINTF("\r\n[INFO] zero_control_value = %d\r\n", logic_control.zero_control_value);
+
+               hi  = (unsigned char)((logic_control.zero_control_value >> 8) & 0xFF);
+               lo  = (unsigned char)(logic_control.zero_control_value & 0xFF);
+               chk = (unsigned char)(0x100 - (ZERO_CONTROL_TYPE + 0x02 + hi + lo));
+               RETARGET_PRINTF("%c%c%c%c%c%c",
+                   FRAME_HEADER, ZERO_CONTROL_TYPE, 0x02, hi, lo, chk);
+            }
+            else
+            {
+               RETARGET_PRINTF("\r\n[ERROR] ZERO_CONTROL_VALUE_ERROR\r\n");
+            }
+            logic_state = LOGIC_STATE_IDLE; 
+            break;
+         case LOGIC_STATE_DEFLUX:  //娑堢鐘舵€?            deflux_trigger = 1;
+            // RETARGET_PRINTF("\r\n[INFO] DEFLUX_DONE\r\n");
+            {
+               unsigned char chk;
+               chk = (unsigned char)(0x100 - (DEFLUX_TYPE + 0x00));
+               RETARGET_PRINTF("%c%c%c%c",
+                   FRAME_HEADER, DEFLUX_TYPE, 0x00, chk);
+            }
+            logic_state = LOGIC_STATE_IDLE;
+            break;
+         case LOGIC_STATE_RELAY_SWITCH:  //缁х數鍣ㄧ姸鎬?            /*鍦ㄨ繖閲屽啓缁х數鍣ㄧ殑閫昏緫锛屼篃灏辨槸鎺у埗缁х數鍣ㄧ殑寮€闂?/
+            if (logic_control.relay_status == 0x00)
+            {
+               unsigned char chk;
+               RELAY_A();
+               saveLogicControl();
+               /*鍙戦€佹垚鍔熺殑甯?/
+               // RETARGET_PRINTF("\r\n[INFO] relay_status = %d\r\n", logic_control.relay_status);
+               // RETARGET_PRINTF("\r\n[INFO] RELAY_A\r\n");
+               chk = (unsigned char)(0x100 - (RELAY_SWITCH_TYPE + 0x01 + 0x00));
+               RETARGET_PRINTF("%c%c%c%c%c",
+                   FRAME_HEADER, RELAY_SWITCH_TYPE, 0x01, 0x00, chk);
+            }
+            else if (logic_control.relay_status == 0x01)
+            {
+               unsigned char chk;
+               RELAY_B();
+               saveLogicControl();
+               /*鍙戦€佹垚鍔熺殑甯?/
+               // RETARGET_PRINTF("\r\n[INFO] relay_status = %d\r\n", logic_control.relay_status);
+               // RETARGET_PRINTF("\r\n[INFO] RELAY_B\r\n");
+               chk = (unsigned char)(0x100 - (RELAY_SWITCH_TYPE + 0x01 + 0x01));
+               RETARGET_PRINTF("%c%c%c%c%c",
+                   FRAME_HEADER, RELAY_SWITCH_TYPE, 0x01, 0x01, chk);
+            }
+            else
+            {
+               /*鍙戦€佸け璐ョ殑甯?/
+               RETARGET_PRINTF("\r\n[ERROR] RELAY_SWITCH_FAILED\r\n");
+            }
+            logic_state = LOGIC_STATE_IDLE; 
+            break;
+      }
+
+   }
+}

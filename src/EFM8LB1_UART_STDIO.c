@@ -23,7 +23,8 @@
 #define DEFLUX_TYPE 0xC0
 //定义继电器切换的类型
 #define RELAY_SWITCH_TYPE 0xD0
-
+//定义调零的类型
+#define SET_ZERO_TYPE 0x15
 
 		
 /*****************************************************宏定义部分*********************************************************** */		
@@ -69,6 +70,9 @@ typedef enum
    LOGIC_STATE_ZERO_CONTROL = 1,  //零点控制
    LOGIC_STATE_DEFLUX = 2,  //消磁功能
    LOGIC_STATE_RELAY_SWITCH = 3,  //继电器切换
+	
+	 LOGIC_SET_ZERO = 4,  //调零操作	
+	
 } logic_state_t;
 
 logic_state_t logic_state; //状态机执行状态
@@ -149,6 +153,7 @@ uint8_t readLogicControl(void)
 
 
 
+
 /*****************************************************继电器控制*********************************************************** */
 
 void RELAY_A(void)
@@ -183,6 +188,132 @@ void RELAY_B(void)
 
 
 
+
+
+/*****************************************************新增 调零控制 *********************************************************** */
+// 读取开关：1=开启（默认，一直读取）；0=关闭。后续如需协议命令控制，直接改这个变量即可
+volatile uint8_t adc_zero_enable = 0;
+uint16_t adc_zero_value = 0;      // 最近一次 ADC 读数（14bit 右对齐，0~16383）
+
+uint16_t last_dac1_value = 0;      // 调零前的adc读数，失败后恢复这个读数
+
+// 闭环调节参数：电压误差死区(mV)，读数电压与目标 1259mV 差小于该值则不调节，防振荡
+#define ADC_CLOSE_DEADBAND_MV  4u
+
+// ADC0 初始化：P2.6 配置为模拟输入，ADC0 软件触发模式（Timer2 已被消磁占用，故不用定时器触发）
+void ADC_ZERO_Init(void)
+{
+   uint8_t sfrpage_save = SFRPAGE;
+
+   // 1) P2.6 设为模拟输入（P2MDIN bit6=0），并从 crossbar 跳过（P2SKIP bit6=1）
+   SFRPAGE = 0x20;
+   P2MDIN &= (uint8_t)~0x40;   // P2.6 模拟模式
+   P2SKIP |= 0x40;             // P2.6 跳过 crossbar
+
+   // 2) ADC0 配置（SFRPAGE 0x00）
+   SFRPAGE = 0x00;
+   ADC0CN2 = ADC0CN2_ADCM__ADBUSY | ADC0CN2_PACEN__PAC_DISABLED;  // 写 ADBUSY=1 启动转换（软件触发）
+   ADC0CN1 = ADC0CN1_ADBITS__14_BIT | ADC0CN1_ADSJST__RIGHT_NO_SHIFT | ADC0CN1_ADRPT__ACC_1;  // 14bit 右对齐单次
+   ADC0MX  = ADC0MX_ADC0MX__ADC0P19;   // P2.6 = ADC0.19
+   ADC0CF2 = ADC0CF2_GNDSL__GND_PIN | ADC0CF2_REFSL__VDD_PIN | (0x03 << ADC0CF2_ADPWR__SHIFT);  // VDD 参考
+   ADC0CF0 = ADC0CF0_ADCLKSEL__SYSCLK | (0x01 << ADC0CF0_ADSC__SHIFT);
+   ADC0CF1 = ADC0CF1_ADLPM__LP_DISABLED | (0x03 << ADC0CF1_ADTK__SHIFT);
+   ADC0CN0 |= ADC0CN0_ADEN__ENABLED | ADC0CN0_IPOEN__POWER_DOWN;
+
+   SFRPAGE = sfrpage_save;
+}
+
+// 软件触发读取一次 ADC0（P2.6），返回 14bit 结果
+uint16_t ADC_ZERO_Read(void)
+{
+   uint8_t sfrpage_save = SFRPAGE;
+
+   SFRPAGE = 0x00;
+   ADC0CN0_ADINT = 0;          // 清转换完成标志
+   ADC0CN0_ADBUSY = 1;         // 启动一次转换
+   while (ADC0CN0_ADINT == 0); // 等待转换完成
+
+   adc_zero_value = (uint16_t)(((uint16_t)ADC0H << 8) | ADC0L);
+   SFRPAGE = sfrpage_save;
+   return adc_zero_value;
+}
+
+//调零计数
+uint16_t set_zero_cnt = 0;
+	 
+uint8_t set_zero(void)
+{
+		//读取ADC数据
+		// ---- ADC_ZERO 测试（新增）：开关默认开，一直读取并通过串口发送 ----
+		if (adc_zero_enable)
+		{
+			
+			 static uint8_t adc_zero_inited = 0;
+			 if (!adc_zero_inited)
+			 {
+					ADC_ZERO_Init(); 
+					adc_zero_inited = 1;
+			 }
+			 ADC_ZERO_Read();
+			 // ---- 闭环调节：ADC读数偏大 -> 减小DAC1，偏小 -> 增大DAC1，稳定在 target_adc_vlaue ----
+			 {
+					uint16_t now_dac1_code;
+					uint16_t set_dac1_code;
+					uint16_t now_mv;
+					int16_t err_mv;
+					uint16_t step;
+
+					now_dac1_code = DAC1_GetCode();                 // 当前DAC1码值
+					set_dac1_code = now_dac1_code;
+
+					now_mv = (uint16_t)(((uint32_t)adc_zero_value * 2500UL) / 16383UL);   // 换算电压 mV
+
+					err_mv = (int16_t)now_mv - 1259;   // 正=电压偏大
+				 
+					if (err_mv > (int16_t)ADC_CLOSE_DEADBAND_MV)
+					{
+						 /* 电压偏大：减小DAC1 */
+						 step = 1;
+						 set_dac1_code -= step;
+						 DAC1_SetCode(set_dac1_code);
+					}
+					else if (err_mv < -(int16_t)ADC_CLOSE_DEADBAND_MV)
+					{
+						 /* 电压偏小：增大DAC1 */
+						 step = 1;
+						 set_dac1_code += step;
+						 DAC1_SetCode(set_dac1_code);
+					}
+					/* 死区内：不调节，防振荡 */
+					
+					set_zero_cnt=set_zero_cnt+1;
+					if(set_zero_cnt % 1000 == 0)
+					{
+						// 打印原始码值(14bit) + 换算电压(mV)，VDD=2.5V 参考
+						RETARGET_PRINTF("DAC1 code=%u    ADC_ZERO=%u   %umV \r\n",
+						now_dac1_code,
+						adc_zero_value,
+						(uint16_t)(((uint32_t)adc_zero_value * 2500UL) / 16383UL));
+					}
+					//看看3s内是否可以调节完成，可以的话发送信息
+					if(set_zero_cnt % 3000 == 0)
+					{
+						set_zero_cnt = 0;
+						adc_zero_enable =0;
+						
+						if(  (err_mv >= -((int16_t)ADC_CLOSE_DEADBAND_MV +1) )  &&  (err_mv <= ((int16_t)ADC_CLOSE_DEADBAND_MV +1)  )  )
+							return 1;  //成功
+						else
+							return 2;	 //失败
+					}
+			 }
+			 delay_ms(1);
+			 return 0;
+		}
+		return 0;	
+}
+
+/*****************************************************新增 调零控制 *********************************************************** */
 
 
 
@@ -336,6 +467,11 @@ unsigned char VerifyChecksum(uart_rx_buffer_t *buf)
 void FrameDataAcquisition(void)
 {
       unsigned char c;
+      // 非阻塞：RX 缓冲无数据直接返回，避免主循环卡死在串口等待
+      if (uart_rx_head == uart_rx_tail)
+      {
+         return;
+      }
       c = uart_getchar();
 
       if (c == FRAME_HEADER && uart_rx_buffer.frame_start_flag == 0)
@@ -404,6 +540,14 @@ void FrameDataAcquisition(void)
                /*只有一个数据，即数据长度是1*/
                logic_control.relay_status = ((uint16_t)uart_rx_buffer.data_value[3]);
             }
+						else if (uart_rx_buffer.type == SET_ZERO_TYPE)
+						{
+						   logic_state = LOGIC_SET_ZERO;	
+							
+							//记录下当前的adc数据，失败以后可以复原
+							 last_dac1_value = DAC1_GetCode();
+							 set_zero_cnt =0;
+						}
             else
             {
                logic_state = LOGIC_STATE_IDLE;  //注意logic_state需要在完成后续的状态机后设置为空闲状态
@@ -451,6 +595,8 @@ void FrameDataAcquisition(void)
 
 
 
+
+
 void main (void)
 {
 
@@ -462,6 +608,7 @@ void main (void)
    IE_ES0 = 1; // Enable UART0 interrupt (收发均用中断+环形缓冲，防止消磁时丢字节)
    SFRPAGE = 0x00;
    SCON0 = 0x50; // UART mode1, REN=1 (TI 不再预置，发送由 putchar 触发中断)
+
 
 
    //flash初始化
@@ -505,22 +652,25 @@ void main (void)
       }
    }
 
+	 
 
-
+	 
    while (1)
    {
-		 
-		 
-		 
-		 
+		        		 
+			
       FrameDataAcquisition();  //串口接收数据
 
       //根据逻辑状态处理数据
       switch (logic_state)
       {
+				
+				
+				
          case LOGIC_STATE_IDLE:  //空闲状态
             break;
 
+				 
          case LOGIC_STATE_ZERO_CONTROL:  //零点控制状态
 
             if(logic_control.zero_control_value>=DAC1_MIN_CODE && logic_control.zero_control_value<=DAC1_MAX_CODE)
@@ -542,6 +692,9 @@ void main (void)
             }
             logic_state = LOGIC_STATE_IDLE; 
             break;
+						
+						
+						
          case LOGIC_STATE_DEFLUX:  //消磁状态
             deflux_trigger = 1;
             // RETARGET_PRINTF("\r\n[INFO] DEFLUX_DONE\r\n");
@@ -553,6 +706,9 @@ void main (void)
             }
             logic_state = LOGIC_STATE_IDLE;
             break;
+						
+						
+						
          case LOGIC_STATE_RELAY_SWITCH:  //继电器状态
             /*在这里写继电器的逻辑，也就是控制继电器的开闭*/
             if (logic_control.relay_status == 0x00)
@@ -586,6 +742,47 @@ void main (void)
             }
             logic_state = LOGIC_STATE_IDLE; 
             break;
+						
+						
+						
+					 case LOGIC_SET_ZERO:  //调零操作
+					 {
+							uint8_t zero_ret; //调零返回值
+							adc_zero_enable = 1;
+							zero_ret = set_zero();
+							if(zero_ret ==1 )      //发送成功
+							{
+								//保存数据
+								logic_control.zero_control_value = DAC1_GetCode();
+								saveLogicControl();
+								
+								logic_state = LOGIC_STATE_IDLE; 
+								{
+								 unsigned char chk;
+								 chk = (unsigned char)(0x100 - (SET_ZERO_TYPE + 0x01 + 0x01));
+								 RETARGET_PRINTF("%c%c%c%c",
+										 FRAME_HEADER, SET_ZERO_TYPE, 0x01 ,0x01, chk);
+								}		
+							}
+							else if(zero_ret ==2 ) //发送失败
+							{
+							
+								//保存数据
+								logic_control.zero_control_value = last_dac1_value;
+								saveLogicControl();									
+								
+								logic_state = LOGIC_STATE_IDLE; 
+								{
+								 unsigned char chk;
+								 chk = (unsigned char)(0x100 - (SET_ZERO_TYPE + 0x01 + 0x00));
+								 RETARGET_PRINTF("%c%c%c%c",
+										 FRAME_HEADER, SET_ZERO_TYPE, 0x01 ,0x00, chk);
+								}		
+							}
+					}
+          break;						
+						
+						
       }
 
    }
