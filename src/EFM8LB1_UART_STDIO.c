@@ -26,6 +26,8 @@
 //定义调零的类型
 #define SET_ZERO_TYPE 0x15
 
+//定义上报ADC_VOL的类型
+#define ADC_VOL_TYPE 0x16
 		
 /*****************************************************宏定义部分*********************************************************** */		
 		
@@ -72,6 +74,7 @@ typedef enum
    LOGIC_STATE_RELAY_SWITCH = 3,  //继电器切换
 	
 	 LOGIC_SET_ZERO = 4,  //调零操作	
+	 LOGIC_ADC_VOL = 5,  //ADC_VOL超量程报警
 	
 } logic_state_t;
 
@@ -236,6 +239,55 @@ uint16_t ADC_ZERO_Read(void)
    adc_zero_value = (uint16_t)(((uint16_t)ADC0H << 8) | ADC0L);
    SFRPAGE = sfrpage_save;
    return adc_zero_value;
+}
+
+// P2.4 电压读取：由协议 0x16 触发，连续读多次取平均，返回 mV。
+// 注意：ADC0 单通道复用，读取完成后将 ADC0MX 恢复为 ADC0P19(P2.6)，避免影响 ADC_ZERO(调零)
+uint16_t ADC_P24_Read_MV(void)
+{
+   uint8_t sfrpage_save = SFRPAGE;
+   static uint8_t adc_p24_inited = 0;
+   uint32_t sum = 0;
+   uint16_t avg;
+   uint8_t i;
+
+   if (!adc_p24_inited)
+   {
+      // 1) P2.4 设为模拟输入（P2MDIN bit4=0），并从 crossbar 跳过（P2SKIP bit4=1）
+      SFRPAGE = 0x20;
+      P2MDIN &= (uint8_t)~0x10;   // P2.4 模拟模式
+      P2SKIP |= 0x10;             // P2.4 跳过 crossbar
+
+      // 2) ADC0 配置（VDD 参考、软件触发、14bit 右对齐）
+      SFRPAGE = 0x00;
+      ADC0CN2 = ADC0CN2_ADCM__ADBUSY | ADC0CN2_PACEN__PAC_DISABLED;
+      ADC0CN1 = ADC0CN1_ADBITS__14_BIT | ADC0CN1_ADSJST__RIGHT_NO_SHIFT | ADC0CN1_ADRPT__ACC_1;
+      ADC0CF2 = ADC0CF2_GNDSL__GND_PIN | ADC0CF2_REFSL__VDD_PIN | (0x03 << ADC0CF2_ADPWR__SHIFT);
+      ADC0CF0 = ADC0CF0_ADCLKSEL__SYSCLK | (0x01 << ADC0CF0_ADSC__SHIFT);
+      ADC0CF1 = ADC0CF1_ADLPM__LP_DISABLED | (0x03 << ADC0CF1_ADTK__SHIFT);
+      ADC0CN0 |= ADC0CN0_ADEN__ENABLED | ADC0CN0_IPOEN__POWER_DOWN;
+      adc_p24_inited = 1;
+   }
+
+   // 切换到 P2.4 通道
+   SFRPAGE = 0x00;
+   ADC0MX = ADC0MX_ADC0MX__ADC0P17;   // P2.4 = ADC0.17
+
+   // 连续读 8 次取平均，滤除噪声
+   for (i = 0; i < 8; i++)
+   {
+      ADC0CN0_ADINT = 0;          // 清转换完成标志
+      ADC0CN0_ADBUSY = 1;         // 启动一次转换
+      while (ADC0CN0_ADINT == 0); // 等待转换完成
+      sum += (uint16_t)(((uint16_t)ADC0H << 8) | ADC0L);
+   }
+   avg = (uint16_t)(sum / 8);
+
+   // 恢复通道为 P2.6（ADC_ZERO 调零使用），避免后续调零读取错误
+   ADC0MX = ADC0MX_ADC0MX__ADC0P19;   // P2.6 = ADC0.19
+
+   SFRPAGE = sfrpage_save;
+   return (uint16_t)(((uint32_t)avg * 2500UL) / 16383UL);   // 返回电压 mV
 }
 
 //调零计数
@@ -566,6 +618,10 @@ void FrameDataAcquisition(void)
 							 set_zero_cnt =0;
 							 zero_OK_cnt =0;
 						}
+						else if (uart_rx_buffer.type == ADC_VOL_TYPE)
+						{
+						   logic_state = LOGIC_ADC_VOL;
+						}
             else
             {
                logic_state = LOGIC_STATE_IDLE;  //注意logic_state需要在完成后续的状态机后设置为空闲状态
@@ -675,7 +731,6 @@ void main (void)
 	 
    while (1)
    {
-		        		 
 			
       FrameDataAcquisition();  //串口接收数据
 
@@ -801,6 +856,18 @@ void main (void)
           break;						
 						
 						
+					 case LOGIC_ADC_VOL:  //ADC_VOL 电压上报（上位机 1s 请求一次）
+					 {
+							unsigned char hi, lo, chk;
+							uint16_t mv = ADC_P24_Read_MV();   // 多读平均返回 mV，函数内已恢复 ADC0MX 为 P2.6
+							hi = (unsigned char)((mv >> 8) & 0xFF);
+							lo = (unsigned char)(mv & 0xFF);
+							chk = (unsigned char)(0x100 - (ADC_VOL_TYPE + 0x02 + hi + lo));
+							RETARGET_PRINTF("%c%c%c%c%c%c",
+									FRAME_HEADER, ADC_VOL_TYPE, 0x02, hi, lo, chk);
+							logic_state = LOGIC_STATE_IDLE;
+					 }
+					 break;
       }
 
    }
