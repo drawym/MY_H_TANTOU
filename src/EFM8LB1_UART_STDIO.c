@@ -121,7 +121,6 @@ uint8_t readLogicControl(void)
    flash_storage_t storage;
    uint8_t *p;
    uint16_t i;
-   uint8_t calc_chk;
    FLADDR addr = FLASH_STORAGE_ADDR;
 
    p = (uint8_t *)&storage;
@@ -192,15 +191,87 @@ void RELAY_B(void)
 
 /*****************************************************串口功能实现*********************************************************** */
 
+// UART 接收 / 发送环形缓冲区（中断与主循环之间传递数据）
+// 放到 XDATA，避免占用宝贵的内部 DATA RAM
+#define UART_RX_RING_SIZE  64
+#define UART_TX_RING_SIZE  64
 
+static volatile unsigned char xdata uart_rx_ring[UART_RX_RING_SIZE];
+static volatile unsigned char uart_rx_head = 0;   // 中断写
+static volatile unsigned char uart_rx_tail = 0;   // 主循环读
+
+static volatile unsigned char xdata uart_tx_ring[UART_TX_RING_SIZE];
+static volatile unsigned char uart_tx_head = 0;   // 主循环写
+static volatile unsigned char uart_tx_tail = 0;   // 中断读
+static volatile bit  uart_tx_busy = 0;            // 1=正在发送中
+
+/**
+ * UART0 中断：收字节入 RX 环形缓冲；发字节从 TX 环形缓冲取出。
+ * 这样即便 Timer2 消磁中断疯狂占用 CPU，串口收发也不会丢字节。
+ */
+SI_INTERRUPT (UART0_ISR, UART0_IRQn)
+{
+   uint8_t SFRPAGE_save = SFRPAGE;
+   SFRPAGE = 0x00;
+
+   if (SCON0 & 0x01)  // RI0
+   {
+      SCON0 &= ~0x01;  // clear RI0
+      uart_rx_ring[uart_rx_head] = SBUF0;
+      uart_rx_head = (unsigned char)((uart_rx_head + 1) % UART_RX_RING_SIZE);
+   }
+
+   if (SCON0 & 0x02)  // TI0
+   {
+      SCON0 &= ~0x02;  // clear TI0
+      if (uart_tx_head != uart_tx_tail)
+      {
+         SBUF0 = uart_tx_ring[uart_tx_tail];
+         uart_tx_tail = (unsigned char)((uart_tx_tail + 1) % UART_TX_RING_SIZE);
+         uart_tx_busy = 1;
+      }
+      else
+      {
+         uart_tx_busy = 0;  // 缓冲区空，停止发送
+      }
+   }
+
+   SFRPAGE = SFRPAGE_save;
+}
 
 unsigned char uart_getchar(void)
 {
     unsigned char c1;
-    while ((SCON0 & 0x01) == 0); // wait for RI0
-    c1 = SBUF0;
-    SCON0 &= ~0x01; // clear RI0
+    while (uart_rx_head == uart_rx_tail);  // 等待缓冲区有数据
+    c1 = uart_rx_ring[uart_rx_tail];
+    uart_rx_tail = (unsigned char)((uart_rx_tail + 1) % UART_RX_RING_SIZE);
     return c1;
+}
+
+/**
+ * putchar —— 重定向 printf 的输出，改为写入 TX 环形缓冲，由中断发送。
+ */
+char putchar(char c)
+{
+   bit need_start;
+   // 等待 TX 缓冲区有空间
+   while ((unsigned char)((uart_tx_head + 1) % UART_TX_RING_SIZE) == uart_tx_tail);
+
+   IE_EA = 0;  // 关中断，保护临界区
+   uart_tx_ring[uart_tx_head] = (unsigned char)c;
+   uart_tx_head = (unsigned char)((uart_tx_head + 1) % UART_TX_RING_SIZE);
+   need_start = !uart_tx_busy;
+   if (need_start)
+   {
+      uart_tx_busy = 1;
+   }
+   IE_EA = 1;  // 开中断
+
+   if (need_start)
+   {
+      SCON0 |= 0x02;  // 置 TI，触发一次发送中断，开始输出
+   }
+   return c;
 }
 
 
@@ -279,7 +350,6 @@ void FrameDataAcquisition(void)
          uart_rx_buffer.index = 0;
          //记录帧头，写入数据
          uart_rx_buffer.data_value[uart_rx_buffer.index++] = c;
-         // RETARGET_PRINTF("\r\nOK\r\n");
       }
       else if (uart_rx_buffer.index < UART_RX_BUFFER_SIZE && uart_rx_buffer.frame_start_flag == 1)
       {
@@ -298,7 +368,6 @@ void FrameDataAcquisition(void)
             {
                uart_rx_buffer.frame_start_flag = 0;
                uart_rx_buffer.index = 0;
-               RETARGET_PRINTF("\r\n[ERROR] NUM-ERROR\r\n");
             }
          }
          //判断一帧是否完结，因为数据格式是AA+（比如01）类型+ （比如02）数据长度 + 数据+ 校验和
@@ -338,7 +407,7 @@ void FrameDataAcquisition(void)
             else
             {
                logic_state = LOGIC_STATE_IDLE;  //注意logic_state需要在完成后续的状态机后设置为空闲状态
-               RETARGET_PRINTF("\r\n[ERROR] TYPE-ERROR\r\n");
+               // RETARGET_PRINTF("\r\n[ERROR] TYPE-ERROR\r\n");
             }
          } 
          else  // 校验错误
@@ -350,7 +419,7 @@ void FrameDataAcquisition(void)
            chk += 0xFF;
            chk  = (unsigned char)(0x100 - chk);
 
-           RETARGET_PRINTF("\r\n%c%c%c%c%c%c\r\n", //注意这个得加换行符
+           RETARGET_PRINTF("%c%c%c%c%c%c", //注意这个得加换行符
                FRAME_HEADER,
                uart_rx_buffer.type,
                0x02,
@@ -390,18 +459,18 @@ void main (void)
    DAC1_Init();
 
    IE_EA = 1; // Enable global interrupts
+   IE_ES0 = 1; // Enable UART0 interrupt (收发均用中断+环形缓冲，防止消磁时丢字节)
    SFRPAGE = 0x00;
-   SCON0 = 0x50; // UART mode
-   SCON0 |= 0x02; // set TI (transmit ready)
+   SCON0 = 0x50; // UART mode1, REN=1 (TI 不再预置，发送由 putchar 触发中断)
 
 
    //flash初始化
    {
       uint8_t ret;
       ret = readLogicControl();
-      RETARGET_PRINTF("\r\n[INIT_Flash_ok]\r\n");
+      // RETARGET_PRINTF("\r\n[INIT_Flash_ok]\r\n");
       //打印信息
-      RETARGET_PRINTF("\r\n[INFO] logic_control.zero_control_value = %d, logic_control.relay_status = %d\r\n", logic_control.zero_control_value, logic_control.relay_status);
+      // RETARGET_PRINTF("\r\n[INFO] logic_control.zero_control_value = %d, logic_control.relay_status = %d\r\n", logic_control.zero_control_value, logic_control.relay_status);
    }
 
    // dac数据初始化
@@ -440,6 +509,10 @@ void main (void)
 
    while (1)
    {
+		 
+		 
+		 
+		 
       FrameDataAcquisition();  //串口接收数据
 
       //根据逻辑状态处理数据
@@ -452,43 +525,64 @@ void main (void)
 
             if(logic_control.zero_control_value>=DAC1_MIN_CODE && logic_control.zero_control_value<=DAC1_MAX_CODE)
             {
+               unsigned char hi, lo, chk;
                DAC1_SetCode(logic_control.zero_control_value);
                saveLogicControl();
                // RETARGET_PRINTF("\r\n[INFO] zero_control_value = %d\r\n", logic_control.zero_control_value);
+
+               hi  = (unsigned char)((logic_control.zero_control_value >> 8) & 0xFF);
+               lo  = (unsigned char)(logic_control.zero_control_value & 0xFF);
+               chk = (unsigned char)(0x100 - (ZERO_CONTROL_TYPE + 0x02 + hi + lo));
+               RETARGET_PRINTF("%c%c%c%c%c%c",
+                   FRAME_HEADER, ZERO_CONTROL_TYPE, 0x02, hi, lo, chk);
             }
             else
             {
-               // RETARGET_PRINTF("\r\n[ERROR] ZERO_CONTROL_VALUE_ERROR\r\n");
+               RETARGET_PRINTF("\r\n[ERROR] ZERO_CONTROL_VALUE_ERROR\r\n");
             }
             logic_state = LOGIC_STATE_IDLE; 
             break;
          case LOGIC_STATE_DEFLUX:  //消磁状态
             deflux_trigger = 1;
             // RETARGET_PRINTF("\r\n[INFO] DEFLUX_DONE\r\n");
-            logic_state = LOGIC_STATE_IDLE; 
+            {
+               unsigned char chk;
+               chk = (unsigned char)(0x100 - (DEFLUX_TYPE + 0x00));
+               RETARGET_PRINTF("%c%c%c%c",
+                   FRAME_HEADER, DEFLUX_TYPE, 0x00, chk);
+            }
+            logic_state = LOGIC_STATE_IDLE;
             break;
          case LOGIC_STATE_RELAY_SWITCH:  //继电器状态
             /*在这里写继电器的逻辑，也就是控制继电器的开闭*/
             if (logic_control.relay_status == 0x00)
             {
+               unsigned char chk;
                RELAY_A();
                saveLogicControl();
                /*发送成功的帧*/
                // RETARGET_PRINTF("\r\n[INFO] relay_status = %d\r\n", logic_control.relay_status);
                // RETARGET_PRINTF("\r\n[INFO] RELAY_A\r\n");
+               chk = (unsigned char)(0x100 - (RELAY_SWITCH_TYPE + 0x01 + 0x00));
+               RETARGET_PRINTF("%c%c%c%c%c",
+                   FRAME_HEADER, RELAY_SWITCH_TYPE, 0x01, 0x00, chk);
             }
             else if (logic_control.relay_status == 0x01)
             {
+               unsigned char chk;
                RELAY_B();
                saveLogicControl();
                /*发送成功的帧*/
                // RETARGET_PRINTF("\r\n[INFO] relay_status = %d\r\n", logic_control.relay_status);
                // RETARGET_PRINTF("\r\n[INFO] RELAY_B\r\n");
+               chk = (unsigned char)(0x100 - (RELAY_SWITCH_TYPE + 0x01 + 0x01));
+               RETARGET_PRINTF("%c%c%c%c%c",
+                   FRAME_HEADER, RELAY_SWITCH_TYPE, 0x01, 0x01, chk);
             }
             else
             {
                /*发送失败的帧*/
-               // RETARGET_PRINTF("\r\n[ERROR] RELAY_SWITCH_FAILED\r\n");
+               RETARGET_PRINTF("\r\n[ERROR] RELAY_SWITCH_FAILED\r\n");
             }
             logic_state = LOGIC_STATE_IDLE; 
             break;
