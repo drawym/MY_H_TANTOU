@@ -28,6 +28,10 @@
 
 //定义上报ADC_VOL的类型
 #define ADC_VOL_TYPE 0x16
+
+//定义调零校准的类型
+#define ZERO_CAL_TYPE 0x20
+
 		
 /*****************************************************宏定义部分*********************************************************** */		
 		
@@ -62,9 +66,10 @@ typedef struct
 {
    uint16_t zero_control_value; //零点控制值
    uint16_t relay_status; //继电器状态 00是档位A 01是档位B
+   uint16_t zero_target_mv; //调零目标电压(mV)，由零点校准(0x20)更新，默认1259
 } logic_control_t;
 
-logic_control_t logic_control={0};
+logic_control_t  logic_control={0};
 
 typedef enum
 {
@@ -75,7 +80,7 @@ typedef enum
 	
 	 LOGIC_SET_ZERO = 4,  //调零操作	
 	 LOGIC_ADC_VOL = 5,  //ADC_VOL超量程报警
-	
+	 LOGIC_ZERO_CAL = 6,  //零点校准
 } logic_state_t;
 
 logic_state_t logic_state; //状态机执行状态
@@ -196,12 +201,12 @@ void RELAY_B(void)
 /*****************************************************新增 调零控制 *********************************************************** */
 // 读取开关：1=开启（默认，一直读取）；0=关闭。后续如需协议命令控制，直接改这个变量即可
 volatile uint8_t adc_zero_enable = 0;
-uint16_t adc_zero_value = 0;      // 最近一次 ADC 读数（14bit 右对齐，0~16383）
+uint16_t xdata adc_zero_value = 0;      // 最近一次 ADC 读数（14bit 右对齐，0~16383）
 
-uint16_t last_dac1_value = 0;      // 调零前的adc读数，失败后恢复这个读数
+uint16_t xdata last_dac1_value = 0;      // 调零前的adc读数，失败后恢复这个读数
 
 // 闭环调节参数：电压误差死区(mV)，读数电压与目标 1259mV 差小于该值则不调节，防振荡
-#define ADC_CLOSE_DEADBAND_MV  4u
+#define  ADC_CLOSE_DEADBAND_MV  4u
 
 // ADC0 初始化：P2.6 配置为模拟输入，ADC0 软件触发模式（Timer2 已被消磁占用，故不用定时器触发）
 void ADC_ZERO_Init(void)
@@ -291,9 +296,11 @@ uint16_t ADC_P24_Read_MV(void)
 }
 
 //调零计数
-uint16_t set_zero_cnt = 0;
+uint16_t xdata set_zero_cnt = 0;
 //成功计数
-uint16_t zero_OK_cnt = 0;	 
+uint16_t xdata zero_OK_cnt = 0;	 
+//调零目标电压（mV），默认1259，由零点校准(0x20)更新
+uint16_t xdata zero_target_mv = 1259;
 #define ZERO_SUCCESS_NUM 100
 
 uint8_t set_zero(void)
@@ -323,7 +330,7 @@ uint8_t set_zero(void)
 
 					now_mv = (uint16_t)(((uint32_t)adc_zero_value * 2500UL) / 16383UL);   // 换算电压 mV
 
-					err_mv = (int16_t)now_mv - 1259;   // 正=电压偏大
+					err_mv = (int16_t)now_mv - (int16_t)zero_target_mv;   // 目标电压由零点校准(0x20)更新，默认1259
 				 
 					if (err_mv > (int16_t)ADC_CLOSE_DEADBAND_MV)
 					{
@@ -349,19 +356,20 @@ uint8_t set_zero(void)
 							zero_OK_cnt=0;
 							set_zero_cnt = 0;
 						  adc_zero_enable =0;
+							adc_zero_inited = 0;
 							return 1;  //成功
 						}
 					}
 					
 					set_zero_cnt=set_zero_cnt+1;
-//					if(set_zero_cnt % 1000 == 0)
-//					{
-//						// 打印原始码值(14bit) + 换算电压(mV)，VDD=2.5V 参考
-//						RETARGET_PRINTF("DAC1 code=%u    ADC_ZERO=%u   %umV \r\n",
-//						now_dac1_code,
-//						adc_zero_value,
-//						(uint16_t)(((uint32_t)adc_zero_value * 2500UL) / 16383UL));
-//					}
+					if(set_zero_cnt % 1000 == 0)
+					{
+						// 打印原始码值(14bit) + 换算电压(mV)，VDD=2.5V 参考
+						RETARGET_PRINTF("DAC1 code=%u    ADC_ZERO=%u   %umV \r\n",
+						now_dac1_code,
+						adc_zero_value,
+						(uint16_t)(((uint32_t)adc_zero_value * 2500UL) / 16383UL));
+					}
 					
 					
 					//看看3s内是否可以调节完成，可以的话发送信息
@@ -370,6 +378,7 @@ uint8_t set_zero(void)
 						set_zero_cnt = 0;
 						adc_zero_enable =0;
 						zero_OK_cnt=0;
+						adc_zero_inited = 0;
 						if(  (err_mv >= -((int16_t)ADC_CLOSE_DEADBAND_MV +1) )  &&  (err_mv <= ((int16_t)ADC_CLOSE_DEADBAND_MV +1)  )  )
 							return 1;  //成功
 						else
@@ -495,22 +504,6 @@ typedef struct
 uart_rx_buffer_t uart_rx_buffer={0};
 
 
-/**
- * CalcChecksum - 计算协议帧的"和校验"补码字节
- */
-unsigned char CalcChecksum(unsigned char type, unsigned char len, unsigned char *data_buf)
-{
-    unsigned char sum = 0;
-    unsigned char i;
-
-    sum += type;
-    sum += len;
-    for (i = 0; i < len; i++) {
-        sum += data_buf[i];
-    }
-
-    return (unsigned char)(0x100 - sum);
-}
 
 /**
  * VerifyChecksum - 验证协议帧的"和校验"补码字节
@@ -541,134 +534,131 @@ void FrameDataAcquisition(void)
       {
          return;
       }
-      c = uart_getchar();
-
-      if (c == FRAME_HEADER && uart_rx_buffer.frame_start_flag == 0)
+      // 改：一次处理完 RX 缓冲中已到的全部字节，防止持续请求时积压丢帧
+      while (uart_rx_head != uart_rx_tail)
       {
-         uart_rx_buffer.frame_start_flag = 1;  //一帧开始
-         //清零
-         uart_rx_buffer.index = 0;
-         for (uart_rx_buffer.index = 0; uart_rx_buffer.index < UART_RX_BUFFER_SIZE; uart_rx_buffer.index++)
+         c = uart_getchar();
+
+         if (c == FRAME_HEADER && uart_rx_buffer.frame_start_flag == 0)
          {
-            uart_rx_buffer.data_value[uart_rx_buffer.index] = 0;
+            uart_rx_buffer.frame_start_flag = 1;  //一帧开始
+            //清零
+            uart_rx_buffer.index = 0;
+            for (uart_rx_buffer.index = 0; uart_rx_buffer.index < UART_RX_BUFFER_SIZE; uart_rx_buffer.index++)
+            {
+               uart_rx_buffer.data_value[uart_rx_buffer.index] = 0;
+            }
+            uart_rx_buffer.index = 0;
+            //记录帧头，写入数据
+            uart_rx_buffer.data_value[uart_rx_buffer.index++] = c;
          }
-         uart_rx_buffer.index = 0;
-         //记录帧头，写入数据
-         uart_rx_buffer.data_value[uart_rx_buffer.index++] = c;
+         else if (uart_rx_buffer.index < UART_RX_BUFFER_SIZE && uart_rx_buffer.frame_start_flag == 1)
+         {
+            // 重同步（改）：type 位置(index==1)收到新的帧头 AA -> 上一帧残缺，丢弃旧半帧以新 AA 重启
+            if (c == FRAME_HEADER && uart_rx_buffer.index == 1)
+            {
+               continue;
+            }
+            uart_rx_buffer.data_value[uart_rx_buffer.index++] = c;
+
+            //判断是否到类型
+            if (uart_rx_buffer.index == 2)
+            {
+               uart_rx_buffer.type = c;
+            }
+            //判断是否到数据长度
+            if (uart_rx_buffer.index == 3)
+            {
+               uart_rx_buffer.data_length = c;
+               if (uart_rx_buffer.data_length > UART_RX_BUFFER_SIZE - 4) 
+               {
+                  uart_rx_buffer.frame_start_flag = 0;
+                  uart_rx_buffer.index = 0;
+               }
+            }
+            //判断一帧是否完结，因为数据格式是AA+（比如01）类型+ （比如02）数据长度 + 数据+ 校验和
+            if (uart_rx_buffer.index == uart_rx_buffer.data_length + 4)
+            {
+               //校验和
+               uart_rx_buffer.checksum = c; 
+               //一帧完结
+               uart_rx_buffer.frame_end_flag = 1;
+            }
+         }
+
+         //拿一帧数据
+         if (uart_rx_buffer.frame_end_flag == 1)
+         {
+            //处理一帧数据-逻辑在这
+            if (VerifyChecksum(&uart_rx_buffer))  // 校验正确，做类型分发
+            {
+               if (uart_rx_buffer.type == ZERO_CONTROL_TYPE)
+               {
+                  /*对数据长度后面的数据进行拼接*/
+                  logic_control.zero_control_value = ((uint16_t)uart_rx_buffer.data_value[3]) << 8  | (uart_rx_buffer.data_value[4]);
+                  logic_state = LOGIC_STATE_ZERO_CONTROL;
+               }
+               else if (uart_rx_buffer.type == DEFLUX_TYPE)
+               {
+                  logic_state = LOGIC_STATE_DEFLUX;
+               }
+               else if (uart_rx_buffer.type == RELAY_SWITCH_TYPE)
+               {
+                  logic_state = LOGIC_STATE_RELAY_SWITCH;
+                  /*只有一个数据，即数据长度是1*/
+                  logic_control.relay_status = ((uint16_t)uart_rx_buffer.data_value[3]);
+               }
+               else if (uart_rx_buffer.type == SET_ZERO_TYPE)
+               {
+                  logic_state = LOGIC_SET_ZERO;	
+                  //记录下当前的adc数据，失败以后可以复原
+                  last_dac1_value = DAC1_GetCode();
+                  set_zero_cnt =0;
+                  zero_OK_cnt =0;
+               }
+               else if (uart_rx_buffer.type == ADC_VOL_TYPE)
+               {
+                  logic_state = LOGIC_ADC_VOL;
+               }
+               else if (uart_rx_buffer.type == ZERO_CAL_TYPE)
+               {
+                  logic_state = LOGIC_ZERO_CAL;
+               }							 
+               else
+               {
+                  logic_state = LOGIC_STATE_IDLE;  //注意logic_state需要在完成后续的状态机后设置为空闲状态
+                  // RETARGET_PRINTF("\r\n[ERROR] TYPE-ERROR\r\n");
+               }
+            } 
+            else  // 校验错误
+            {
+               unsigned char chk;
+               chk  = uart_rx_buffer.type;
+               chk += 0x02;
+               chk += 0xFF;
+               chk += 0xFF;
+               chk  = (unsigned char)(0x100 - chk);
+
+               RETARGET_PRINTF("%c%c%c%c%c%c", //注意这个得加换行符
+                   FRAME_HEADER,
+                   uart_rx_buffer.type,
+                   0x02,
+                   0xFF,
+                   0xFF,
+                   chk);
+            }
+
+            //最终对数据清空
+            uart_rx_buffer.frame_end_flag = 0;
+            uart_rx_buffer.index = 0;
+            uart_rx_buffer.type = 0;
+            uart_rx_buffer.data_length = 0;
+            uart_rx_buffer.checksum = 0;
+            uart_rx_buffer.frame_start_flag = 0;
+         }
       }
-      else if (uart_rx_buffer.index < UART_RX_BUFFER_SIZE && uart_rx_buffer.frame_start_flag == 1)
-      {
-         uart_rx_buffer.data_value[uart_rx_buffer.index++] = c;
-
-         //判断是否到类型
-         if (uart_rx_buffer.index == 2)
-         {
-            uart_rx_buffer.type = c;
-         }
-         //判断是否到数据长度
-         if (uart_rx_buffer.index == 3)
-         {
-            uart_rx_buffer.data_length = c;
-            if (uart_rx_buffer.data_length > UART_RX_BUFFER_SIZE - 4) 
-            {
-               uart_rx_buffer.frame_start_flag = 0;
-               uart_rx_buffer.index = 0;
-            }
-         }
-         //判断一帧是否完结，因为数据格式是AA+（比如01）类型+ （比如02）数据长度 + 数据+ 校验和
-         if (uart_rx_buffer.index == uart_rx_buffer.data_length + 4)
-         {
-            //校验和
-            uart_rx_buffer.checksum = c; 
-            //一帧完结
-            uart_rx_buffer.frame_end_flag = 1;
-         }
-      }
-
-      //拿一帧数据
-      if (uart_rx_buffer.frame_end_flag == 1)
-      {
-         //处理一帧数据-逻辑在这
-         if (VerifyChecksum(&uart_rx_buffer))  // 校验正确，做类型分发
-         {
-            if (uart_rx_buffer.type == ZERO_CONTROL_TYPE)
-            {
-               /*对数据长度后面的数据进行拼接*/
-               logic_control.zero_control_value = ((uint16_t)uart_rx_buffer.data_value[3]) << 8  | (uart_rx_buffer.data_value[4]);
-               logic_state = LOGIC_STATE_ZERO_CONTROL;
-
-            }
-            else if (uart_rx_buffer.type == DEFLUX_TYPE)
-            {
-               logic_state = LOGIC_STATE_DEFLUX;
-
-            }
-            else if (uart_rx_buffer.type == RELAY_SWITCH_TYPE)
-            {
-               logic_state = LOGIC_STATE_RELAY_SWITCH;
-               /*只有一个数据，即数据长度是1*/
-               logic_control.relay_status = ((uint16_t)uart_rx_buffer.data_value[3]);
-            }
-						else if (uart_rx_buffer.type == SET_ZERO_TYPE)
-						{
-						   logic_state = LOGIC_SET_ZERO;	
-							
-							//记录下当前的adc数据，失败以后可以复原
-							 last_dac1_value = DAC1_GetCode();
-							 set_zero_cnt =0;
-							 zero_OK_cnt =0;
-						}
-						else if (uart_rx_buffer.type == ADC_VOL_TYPE)
-						{
-						   logic_state = LOGIC_ADC_VOL;
-						}
-            else
-            {
-               logic_state = LOGIC_STATE_IDLE;  //注意logic_state需要在完成后续的状态机后设置为空闲状态
-               // RETARGET_PRINTF("\r\n[ERROR] TYPE-ERROR\r\n");
-            }
-         } 
-         else  // 校验错误
-         {
-           unsigned char chk;
-           chk  = uart_rx_buffer.type;
-           chk += 0x02;
-           chk += 0xFF;
-           chk += 0xFF;
-           chk  = (unsigned char)(0x100 - chk);
-
-           RETARGET_PRINTF("%c%c%c%c%c%c", //注意这个得加换行符
-               FRAME_HEADER,
-               uart_rx_buffer.type,
-               0x02,
-               0xFF,
-               0xFF,
-               chk);
-         }
-
-
-         //最终对数据清空
-         uart_rx_buffer.frame_end_flag = 0;
-         uart_rx_buffer.index = 0;
-         uart_rx_buffer.type = 0;
-         uart_rx_buffer.data_length = 0;
-         uart_rx_buffer.checksum = 0;
-         uart_rx_buffer.frame_start_flag = 0;
-
-      }
-
-
-
-
 }
 /*****************************************************串口功能实现*********************************************************** */
-
-
-
-
-
-
-
 
 
 void main (void)
@@ -689,6 +679,12 @@ void main (void)
    {
       uint8_t ret;
       ret = readLogicControl();
+      // 调零目标初始化：Flash 无有效数据(0xFFFF/擦除态)或非法值时恢复默认1259
+      if (logic_control.zero_target_mv == 0 || logic_control.zero_target_mv > 2500)
+      {
+         logic_control.zero_target_mv = 1259;
+      }
+      zero_target_mv = logic_control.zero_target_mv;   // 运行时目标与Flash同步
       // RETARGET_PRINTF("\r\n[INIT_Flash_ok]\r\n");
       //打印信息
       // RETARGET_PRINTF("\r\n[INFO] logic_control.zero_control_value = %d, logic_control.relay_status = %d\r\n", logic_control.zero_control_value, logic_control.relay_status);
@@ -822,7 +818,7 @@ void main (void)
 					 {
 							uint8_t zero_ret; //调零返回值
 							adc_zero_enable = 1;
-							zero_ret = set_zero();
+							zero_ret = set_zero();  //************循环调零操作*********
 							if(zero_ret ==1 )      //发送成功
 							{
 								//保存数据
@@ -837,7 +833,7 @@ void main (void)
 										 FRAME_HEADER, SET_ZERO_TYPE, 0x01 ,0x01, chk);
 								}		
 							}
-							else if(zero_ret ==2 ) //发送失败
+							else if(zero_ret ==2 ) //发送失败是 00 
 							{
 							
 								//保存数据
@@ -856,18 +852,82 @@ void main (void)
           break;						
 						
 						
-					 case LOGIC_ADC_VOL:  //ADC_VOL 电压上报（上位机 1s 请求一次）
-					 {
-							unsigned char hi, lo, chk;
-							uint16_t mv = ADC_P24_Read_MV();   // 多读平均返回 mV，函数内已恢复 ADC0MX 为 P2.6
-							hi = (unsigned char)((mv >> 8) & 0xFF);
-							lo = (unsigned char)(mv & 0xFF);
-							chk = (unsigned char)(0x100 - (ADC_VOL_TYPE + 0x02 + hi + lo));
-							RETARGET_PRINTF("%c%c%c%c%c%c",
-									FRAME_HEADER, ADC_VOL_TYPE, 0x02, hi, lo, chk);
-							logic_state = LOGIC_STATE_IDLE;
-					 }
-					 break;
+				 case LOGIC_ADC_VOL:  //ADC_VOL 电压上报（上位机 1s 请求一次）
+				 {
+						unsigned char hi, lo, chk;
+						uint16_t mv = ADC_P24_Read_MV();   // 多读平均返回 mV，函数内已恢复 ADC0MX 为 P2.6
+						hi = (unsigned char)((mv >> 8) & 0xFF);
+						lo = (unsigned char)(mv & 0xFF);
+						chk = (unsigned char)(0x100 - (ADC_VOL_TYPE + 0x02 + hi + lo));
+						RETARGET_PRINTF("%c%c%c%c%c%c",
+								FRAME_HEADER, ADC_VOL_TYPE, 0x02, hi, lo, chk);
+						logic_state = LOGIC_STATE_IDLE;
+				 }
+				 break;
+					 
+				 
+				 case LOGIC_ZERO_CAL:  //零点校准的操作
+				 {
+				 	 //零点校准：采样 ADC_ZERO(P2.6)，电压在 1259mV±200mV 内 -> 成功（并把采样值设为调零目标）；否则失败
+				 	 static uint8_t zero_cal_inited = 0;
+				 	 uint16_t mv;
+				 	 if (!zero_cal_inited)
+				 	 {
+				 		 ADC_ZERO_Init();
+				 		 zero_cal_inited = 1;
+				 	 }
+				 	 ADC_ZERO_Read();
+				 	 mv = (uint16_t)(((uint32_t)adc_zero_value * 2500UL) / 16383UL);   // 换算电压 mV
+					 
+//						// 打印原始码值(14bit) + 换算电压(mV)，VDD=2.5V 参考
+//						RETARGET_PRINTF("ADC_ZERO=%u   %umV \r\n",
+//						adc_zero_value,
+//						(uint16_t)(((uint32_t)adc_zero_value * 2500UL) / 16383UL));
+//								 
+//				 	 ADC_ZERO_Read();
+//				 	 mv = (uint16_t)(((uint32_t)adc_zero_value * 2500UL) / 16383UL);   // 换算电压 mV
+//					 
+//						// 打印原始码值(14bit) + 换算电压(mV)，VDD=2.5V 参考
+//						RETARGET_PRINTF("ADC_ZERO=%u   %umV \r\n",
+//						adc_zero_value,
+//						(uint16_t)(((uint32_t)adc_zero_value * 2500UL) / 16383UL));
+
+//						delay_ms(100);
+					 
+					 
+				 	 if (mv >= (uint16_t)(1259u - 500u) && mv <= (uint16_t)(1259u + 500u))
+				 	 {
+				 		 //成功：将该采样值作为新的调零目标，set_zero 按 zero_target_mv 闭环
+				 		 zero_target_mv = mv;
+				 		 logic_control.zero_target_mv = mv;   // 持久化到Flash
+				 		 saveLogicControl();
+				 		 logic_state = LOGIC_STATE_IDLE;
+				 		 {
+				 			 unsigned char chk;
+				 			 chk = (unsigned char)(0x100 - (ZERO_CAL_TYPE + 0x01 + 0x01));
+				 			 RETARGET_PRINTF("%c%c%c%c%c",
+				 				 FRAME_HEADER, ZERO_CAL_TYPE, 0x01, 0x01, chk);
+							 zero_cal_inited = 0;
+				 		 }
+				 	 }
+				 	 else
+				 	 {
+				 		 //失败
+				 		 logic_state = LOGIC_STATE_IDLE;
+				 		 {
+				 			 unsigned char chk;
+				 			 chk = (unsigned char)(0x100 - (ZERO_CAL_TYPE + 0x01 + 0x00));
+				 			 RETARGET_PRINTF("%c%c%c%c%c",
+				 				 FRAME_HEADER, ZERO_CAL_TYPE, 0x01, 0x00, chk);
+							 zero_cal_inited = 0;
+				 		 }
+				 	 }
+				 }
+				 break;					 
+					 
+					 
+ 
+					 
       }
 
    }

@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   INTERRUPTS                                                        10/12/2026 09:37:15 PAGE 1   
+C51 COMPILER V9.60.0.0   INTERRUPTS                                                        10/14/2026 18:20:18 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE INTERRUPTS
@@ -62,7 +62,7 @@ line level    source
   52          };
   53          
   54          
-C51 COMPILER V9.60.0.0   INTERRUPTS                                                        10/12/2026 09:37:15 PAGE 2   
+C51 COMPILER V9.60.0.0   INTERRUPTS                                                        10/14/2026 18:20:18 PAGE 2   
 
   55          
   56          SI_INTERRUPT (TIMER2_ISR, TIMER2_IRQn)
@@ -126,7 +126,7 @@ line level    source
  114   3               DAC0_SetCode(DAC_MID_CODE);
  115   3            }
  116   2            else if (deflux_cycle_count < DEFLUX_FULL_CYCLES)
-C51 COMPILER V9.60.0.0   INTERRUPTS                                                        10/12/2026 09:37:15 PAGE 3   
+C51 COMPILER V9.60.0.0   INTERRUPTS                                                        10/14/2026 18:20:18 PAGE 3   
 
  117   2            {
  118   3               deflux_amp_q8 = DEFLUX_AMP_Q8_FULL;
