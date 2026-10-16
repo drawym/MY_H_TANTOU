@@ -41,6 +41,7 @@
 
 extern volatile uint32_t counter ;//延时函数-中断里面
 extern volatile uint8_t deflux_trigger ;   // 消磁的逻辑，设置为1则行一次-中断里面
+void deflux_set_mid_mv(uint16_t mv);   // 设置消磁正弦中点电压(mV)
 /*****************************************************外部声明部分*********************************************************** */		
 
 
@@ -685,6 +686,7 @@ void main (void)
          logic_control.zero_target_mv = 1259;
       }
       zero_target_mv = logic_control.zero_target_mv;   // 运行时目标与Flash同步
+      deflux_set_mid_mv(zero_target_mv);   // DAC0(消磁)开机输出到保存的中点
       // RETARGET_PRINTF("\r\n[INIT_Flash_ok]\r\n");
       //打印信息
       // RETARGET_PRINTF("\r\n[INFO] logic_control.zero_control_value = %d, logic_control.relay_status = %d\r\n", logic_control.zero_control_value, logic_control.relay_status);
@@ -883,16 +885,7 @@ void main (void)
 //						RETARGET_PRINTF("ADC_ZERO=%u   %umV \r\n",
 //						adc_zero_value,
 //						(uint16_t)(((uint32_t)adc_zero_value * 2500UL) / 16383UL));
-//								 
-//				 	 ADC_ZERO_Read();
-//				 	 mv = (uint16_t)(((uint32_t)adc_zero_value * 2500UL) / 16383UL);   // 换算电压 mV
-//					 
-//						// 打印原始码值(14bit) + 换算电压(mV)，VDD=2.5V 参考
-//						RETARGET_PRINTF("ADC_ZERO=%u   %umV \r\n",
-//						adc_zero_value,
-//						(uint16_t)(((uint32_t)adc_zero_value * 2500UL) / 16383UL));
 
-//						delay_ms(100);
 					 
 					 
 				 	 if (mv >= (uint16_t)(1259u - 500u) && mv <= (uint16_t)(1259u + 500u))
@@ -901,6 +894,7 @@ void main (void)
 				 		 zero_target_mv = mv;
 				 		 logic_control.zero_target_mv = mv;   // 持久化到Flash
 				 		 saveLogicControl();
+				 		 deflux_set_mid_mv(zero_target_mv);   // 消磁中点同步为校准值
 				 		 logic_state = LOGIC_STATE_IDLE;
 				 		 {
 				 			 unsigned char chk;

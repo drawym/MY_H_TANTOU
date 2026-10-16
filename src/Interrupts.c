@@ -30,6 +30,7 @@ static uint16_t deflux_cycle_count = 0u;
 static uint16_t deflux_amp_q8 = DEFLUX_AMP_Q8_FULL;
 static volatile uint8_t deflux_running = 0u;   // 1=正在执行退磁流程
 volatile uint8_t deflux_trigger = 0u;   // 主循环写1请求执行一次
+static uint16_t dac_mid_code = DAC_MID_CODE;   // 消磁正弦中点(DAC码)，默认2048(=VREF/2)，可用 deflux_set_mid_mv() 修改
 
 static uint16_t code sin_table[SINE_LENGTH]  =
 {
@@ -53,11 +54,25 @@ static uint16_t code sin_table[SINE_LENGTH]  =
 
 
 
+/* 设置消磁正弦的中点电压（mV），波形摆动轴与结束停留点均改为该中点。
+ * mv: 0~2500mV（VREF=2.5V），对应 DAC 码 = mv*4096/2500。
+ * 注意：若消磁运行中调用会立即跳到新中点输出。 */
+void deflux_set_mid_mv(uint16_t mv)
+{
+   uint16_t code1;
+   if (mv > 2500u) { mv = 2500u; }            // 限幅到 VREF
+   code1 = (uint16_t)(((uint32_t)mv * 4096UL) / 2500UL);
+   if (code1 > 4095u) { code1 = 4095u; }        // 12bit DAC 上限
+   dac_mid_code = code1;
+   DAC0_SetCode(dac_mid_code);                // 立即输出到新中点
+}
+
 SI_INTERRUPT (TIMER2_ISR, TIMER2_IRQn)
 {
    uint16_t sine_code;
    uint16_t swing;
    uint16_t out_code;
+   int32_t out32;
    uint16_t decay_cycle;
    uint16_t remain_cycle;
 
@@ -82,22 +97,27 @@ SI_INTERRUPT (TIMER2_ISR, TIMER2_IRQn)
    sine_code = sin_table[sin_idx];
    if (deflux_amp_q8 >= DEFLUX_AMP_Q8_FULL)
    {
-      out_code = sine_code;
+      /* 满幅：整表以 dac_mid_code 为轴平移（原表轴是 DAC_MID_CODE=2048） */
+      out32 = (int32_t)sine_code - (int32_t)DAC_MID_CODE + (int32_t)dac_mid_code;
    }
    else if (deflux_amp_q8 == 0u)
    {
-      out_code = DAC_MID_CODE;
+      out32 = (int32_t)dac_mid_code;
    }
    else if (sine_code >= DAC_MID_CODE)
    {
       swing = sine_code - DAC_MID_CODE;
-      out_code = DAC_MID_CODE + (uint16_t)(((uint32_t)swing * deflux_amp_q8) >> 8);
+      out32 = (int32_t)dac_mid_code + (int32_t)(((uint32_t)swing * deflux_amp_q8) >> 8);
    }
    else
    {
       swing = DAC_MID_CODE - sine_code;
-      out_code = DAC_MID_CODE - (uint16_t)(((uint32_t)swing * deflux_amp_q8) >> 8);
+      out32 = (int32_t)dac_mid_code - (int32_t)(((uint32_t)swing * deflux_amp_q8) >> 8);
    }
+   /* 中点不在 2048 时表摆幅可能越过 0/4095，做 12bit 限幅防削波/下溢 */
+   if (out32 < 0) { out32 = 0; }
+   if (out32 > 4095) { out32 = 4095; }
+   out_code = (uint16_t)out32;
    DAC0_SetCode(out_code);
 
    sin_idx++;
@@ -111,7 +131,7 @@ SI_INTERRUPT (TIMER2_ISR, TIMER2_IRQn)
          deflux_cycle_count = 0u;
          deflux_running = 0u;
          deflux_amp_q8 = 0u;
-         DAC0_SetCode(DAC_MID_CODE);
+         DAC0_SetCode(dac_mid_code);
       }
       else if (deflux_cycle_count < DEFLUX_FULL_CYCLES)
       {
