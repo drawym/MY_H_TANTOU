@@ -18,16 +18,21 @@
 #define SINE_LENGTH        256u
 #define DAC_MID_CODE       2048u
 
-/* 300Hz sine output: 500ms full + 1500ms decay + 200ms mid hold. */
-#define DEFLUX_FULL_CYCLES   150u  //满幅度的周期数
-#define DEFLUX_DECAY_CYCLES  450u  //衰减周期数
-#define DEFLUX_HOLD_CYCLES   60u   //保持的周期数
+/* 消磁包络：500ms 满幅 + 1500ms 线性衰减 -> 归到中点结束
+   一个正弦周期 = 256 点 × 54us = 13.82ms（约 72.3Hz），所以：
+     500ms  ≈ 36 周期 (497.7ms)
+     1500ms ≈ 109 周期 (1506.8ms)
+   合计约 2.00s；衰减到 0 时输出已经停在中点，故不再额外保持 */
+#define DEFLUX_FULL_CYCLES   36u   //满幅度的周期数  ≈500ms
+#define DEFLUX_DECAY_CYCLES  109u  //衰减周期数      ≈1.5s
+#define DEFLUX_HOLD_CYCLES   0u    //衰减结束即在中点，不再保持
 #define DEFLUX_TOTAL_CYCLES  (DEFLUX_FULL_CYCLES + DEFLUX_DECAY_CYCLES + DEFLUX_HOLD_CYCLES)
 #define DEFLUX_AMP_Q8_FULL   256u
 
 static uint16_t sin_idx = 0u;
 static uint16_t deflux_cycle_count = 0u;
 static uint16_t deflux_amp_q8 = DEFLUX_AMP_Q8_FULL;
+static uint16_t deflux_gain_q8 = DEFLUX_AMP_Q8_FULL;   /* 幅值增益 amp*amp_q8/2048，每个正弦周期算一次(省掉采样中断里的32位除法) */
 static volatile uint8_t deflux_running = 0u;   // 1=正在执行退磁流程
 volatile uint8_t deflux_trigger = 0u;   // 主循环写1请求执行一次
 static uint16_t dac_mid_code = DAC_MID_CODE;   // 消磁正弦中点(DAC码)，默认2048(=VREF/2)，可用 deflux_set_mid_mv() 修改
@@ -67,12 +72,18 @@ void deflux_set_mid_mv(uint16_t mv)
    DAC0_SetCode(dac_mid_code);                // 立即输出到新中点
 }
 
+/* 消磁是否还在跑：1=正在消磁，0=空闲（主循环用它实现"消磁结束才回包"） */
+uint8_t deflux_busy(void)
+{
+   return deflux_running;
+}
+
 SI_INTERRUPT (TIMER2_ISR, TIMER2_IRQn)
 {
    uint16_t sine_code;
-   uint16_t swing;
    uint16_t out_code;
    int32_t out32;
+   int16_t dev;
    uint16_t decay_cycle;
    uint16_t remain_cycle;
 
@@ -95,26 +106,34 @@ SI_INTERRUPT (TIMER2_ISR, TIMER2_IRQn)
 
    /* 运行中：正常生成正弦（不再有 else 分支，流程代码只有这一份） */
    sine_code = sin_table[sin_idx];
-   if (deflux_amp_q8 >= DEFLUX_AMP_Q8_FULL)
+
+   /* 优化1：幅值增益每个正弦周期(256点)只算一次 gain = amp*amp_q8/2048 (≤256)
+      原来每个采样点都要跑 2 次 32bit 除法 + 2 次 32bit 乘法：C51 的 32bit 除法是位串行库函数，
+      一次上千 cycle，单次中断几乎占满 54us 的采样周期，把主循环的 CPU 全吃光了 */
+   if (sin_idx == 0u)
    {
-      /* 满幅：整表以 dac_mid_code 为轴平移（原表轴是 DAC_MID_CODE=2048） */
-      out32 = (int32_t)sine_code - (int32_t)DAC_MID_CODE + (int32_t)dac_mid_code;
+      uint16_t amp;
+      amp = dac_mid_code;
+      if (amp > (uint16_t)(4096u - dac_mid_code)) { amp = (uint16_t)(4096u - dac_mid_code); }
+      deflux_gain_q8 = (uint16_t)(((uint32_t)amp * deflux_amp_q8) / DAC_MID_CODE);
    }
-   else if (deflux_amp_q8 == 0u)
+
+   /* 优化2：每个采样点只做 1 次乘法 + 1 次右移(代替 /256)，满幅/静音路径连乘法都省掉
+      注：右移对负数是向下取整，与原 /256 最多差 1 个 DAC 码，对消磁波形无影响 */
+   dev = (int16_t)sine_code - (int16_t)DAC_MID_CODE;                /* 相对原轴的偏差 ±2047 */
+   if (deflux_gain_q8 == DEFLUX_AMP_Q8_FULL)
    {
-      out32 = (int32_t)dac_mid_code;
+      out32 = (int32_t)dac_mid_code + (int32_t)dev;                 /* 满幅：最常见路径，无乘法 */
    }
-   else if (sine_code >= DAC_MID_CODE)
+   else if (deflux_gain_q8 == 0u)
    {
-      swing = sine_code - DAC_MID_CODE;
-      out32 = (int32_t)dac_mid_code + (int32_t)(((uint32_t)swing * deflux_amp_q8) >> 8);
+      out32 = (int32_t)dac_mid_code;                                /* 衰减到底：停在中点 */
    }
    else
    {
-      swing = DAC_MID_CODE - sine_code;
-      out32 = (int32_t)dac_mid_code - (int32_t)(((uint32_t)swing * deflux_amp_q8) >> 8);
+      out32 = (int32_t)dac_mid_code + (((int32_t)dev * (int32_t)deflux_gain_q8) >> 8);
    }
-   /* 中点不在 2048 时表摆幅可能越过 0/4095，做 12bit 限幅防削波/下溢 */
+   /* 12bit 限幅兜底（mid 接近满量程时峰值可能超 4095） */
    if (out32 < 0) { out32 = 0; }
    if (out32 > 4095) { out32 = 4095; }
    out_code = (uint16_t)out32;

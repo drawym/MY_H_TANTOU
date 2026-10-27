@@ -42,19 +42,36 @@
 extern volatile uint32_t counter ;//延时函数-中断里面
 extern volatile uint8_t deflux_trigger ;   // 消磁的逻辑，设置为1则行一次-中断里面
 void deflux_set_mid_mv(uint16_t mv);   // 设置消磁正弦中点电压(mV)
+extern uint8_t deflux_busy(void);   // Interrupts.c：消磁是否还在跑（0=空闲）
+
+/* 消磁回包状态：0=还没启动，1=已启动，等消磁真正跑完再回包 */
+static uint8_t  deflux_wait_reply = 0;
+static uint32_t deflux_start_tick = 0;
+/* 调零前的等待状态：上位机若不等消磁回包就发调零，这里先等消磁真正结束 */
+static uint8_t  zero_wait_started = 0;
+static uint32_t zero_wait_tick = 0;
+/* counter≈5.9kHz@72MHz → 180000 tick≈30s，给一次消磁(约9~10s)留足余量 */
+#define DEFLUX_TIMEOUT_TICK  180000UL
 /*****************************************************外部声明部分*********************************************************** */		
 
 
 
 
 /*****************************************************延时函数*********************************************************** */		
-uint32_t start_counter =0;
+/* Timer0 时基：SYSCLK/48/(256-0x01) = 72MHz/48/254 ≈ 5.9kHz，即 1ms ≈ 5.9 个 counter
+   原来写 2*ms 是按 counter=2kHz 算的，72MHz 下实际延时只有设计值的 1/3（继电器脉宽会被缩短） */
+#define COUNTER_TICKS_PER_MS_NUM   59u
+#define COUNTER_TICKS_PER_MS_DEN   10u
+/* ms -> counter tick 换算（counter≈5.9kHz@72MHz，1s≈5900 tick） */
+#define COUNTER_TICKS(ms)   (((uint32_t)(ms) * COUNTER_TICKS_PER_MS_NUM) / COUNTER_TICKS_PER_MS_DEN)
 void delay_ms(uint16_t ms)
 {
-	start_counter = counter;
-	while((counter - start_counter ) < (2*ms))
-	{
-	};
+   uint32_t start = counter;
+   uint32_t ticks = ((uint32_t)ms * COUNTER_TICKS_PER_MS_NUM) / COUNTER_TICKS_PER_MS_DEN;
+
+   while((counter - start) < ticks)
+   {
+   };
 }
 		
 
@@ -65,12 +82,21 @@ void delay_ms(uint16_t ms)
 /*****************************************************逻辑控制*********************************************************** */
 typedef struct
 {
+	
    uint16_t zero_control_value; //零点控制值
+	
+
    uint16_t relay_status; //继电器状态 00是档位A 01是档位B
-   uint16_t zero_target_mv; //调零目标电压(mV)，由零点校准(0x20)更新，默认1259
+	
+   uint16_t zero_target_mv; //调零目标电压(mV)，由零点校准(0x20)更新，默认1259 ，影响调零和消磁的中点
+	
+		
+   uint16_t a_zero_control_value; //A档位的零点控制值	(30A)
+	 uint16_t b_zero_control_value; //b档位的零点控制值	(5A)
+	
 } logic_control_t;
 
-logic_control_t  logic_control={0};
+logic_control_t  xdata logic_control={0};
 
 typedef enum
 {
@@ -84,7 +110,7 @@ typedef enum
 	 LOGIC_ZERO_CAL = 6,  //零点校准
 } logic_state_t;
 
-logic_state_t logic_state; //状态机执行状态
+logic_state_t xdata logic_state; //状态机执行状态
 /*****************************************************逻辑控制*********************************************************** */
 
 
@@ -206,6 +232,10 @@ uint16_t xdata adc_zero_value = 0;      // 最近一次 ADC 读数（14bit 右�
 
 uint16_t xdata last_dac1_value = 0;      // 调零前的adc读数，失败后恢复这个读数
 
+
+uint16_t xdata adc_zero_relay = 0;      // 调零前记录当前档位 0 档位A ， 1 档位B
+
+
 // 闭环调节参数：电压误差死区(mV)，读数电压与目标 1259mV 差小于该值则不调节，防振荡
 #define  ADC_CLOSE_DEADBAND_MV  4u
 
@@ -296,13 +326,74 @@ uint16_t ADC_P24_Read_MV(void)
    return (uint16_t)(((uint32_t)avg * 2500UL) / 16383UL);   // 返回电压 mV
 }
 
+/* ---- 电压越限阈值(mV)：P2.4 采样电压超出 [OVL_LOW_MIN, OVL_HIGH_MAX] 就主动上报 0x16 ---- */
+/* ！！下面只是占位默认值，请按探头实际输出量程修改 ！！ */
+#define OVL_LOW_MIN     200
+#define OVL_HIGH_MAX    4090
+
+/* 电压越限主动上报：每 1s 采一次 P2.4，超阈值就主动发一帧
+   AA 16 02 hi lo chk   （和原来 0x16 查询的应答帧格式完全一致，数据是 mV）
+   1) 只在空闲且消磁已结束时采样：避免打断调零的 P2.6 闭环，也避免消磁期间读数乱跳
+   2) 越限期间每 1s 上报一次（持续告警） */
+void ADC_OVL_Process(void)
+{
+   static uint32_t ovl_tick = 0;
+   static uint8_t  ovl_inited = 0;
+   uint16_t mv;
+   unsigned char hi, lo, chk;
+
+   /* 消磁/调零期间不采样，避免抢 ADC 通道 */
+   if ((logic_state != LOGIC_STATE_IDLE) || deflux_busy())
+   {
+      return;
+   }
+
+   if (!ovl_inited)
+   {
+      ovl_inited = 1;
+      ovl_tick = counter;
+      return;
+   }
+
+   if ((counter - ovl_tick) < COUNTER_TICKS(1000u))     /* 1s 一次 */
+   {
+      return;
+   }
+   ovl_tick = counter;
+
+   mv = ADC_P24_Read_MV();          /* 读 P2.4，函数内部已把 ADC0MX 还原到 P2.6 */
+
+   if ((mv >= OVL_LOW_MIN) && (mv <= OVL_HIGH_MAX))
+   {
+      return;                        /* 在范围内，不上报 */
+   }
+
+   /* 越限：主动上报（帧格式与 0x16 查询应答一致） */
+   hi  = (unsigned char)((mv >> 8) & 0xFF);
+   lo  = (unsigned char)(mv & 0xFF);
+   chk = (unsigned char)(0x100 - (ADC_VOL_TYPE + 0x02 + hi + lo));
+   RETARGET_PRINTF("%c%c%c%c%c%c",
+       FRAME_HEADER, ADC_VOL_TYPE, 0x02, hi, lo, chk);
+}
+
 //调零计数
-uint16_t xdata set_zero_cnt = 0;
+uint16_t  set_zero_cnt = 0;
 //成功计数
 uint16_t xdata zero_OK_cnt = 0;	 
 //调零目标电压（mV），默认1259，由零点校准(0x20)更新
 uint16_t xdata zero_target_mv = 1259;
-#define ZERO_SUCCESS_NUM 100
+#define ZERO_SUCCESS_NUM 10
+
+
+void delay_us(uint8_t us)
+{
+	 uint32_t i;
+	 for (i = 0; i < us; i++)
+   {
+
+   }
+}
+
 
 uint8_t set_zero(void)
 {
@@ -318,6 +409,11 @@ uint8_t set_zero(void)
 					adc_zero_inited = 1;
 			 }
 			 ADC_ZERO_Read();
+			 
+			 set_zero_cnt=set_zero_cnt+1;
+		 
+			 
+			 
 			 // ---- 闭环调节：ADC读数偏大 -> 减小DAC1，偏小 -> 增大DAC1，稳定在 target_adc_vlaue ----
 			 {
 					uint16_t now_dac1_code;
@@ -333,8 +429,13 @@ uint8_t set_zero(void)
 
 					err_mv = (int16_t)now_mv - (int16_t)zero_target_mv;   // 目标电压由零点校准(0x20)更新，默认1259
 				 
+
+				 
+				 
+				 
 					if (err_mv > (int16_t)ADC_CLOSE_DEADBAND_MV)
 					{
+						 zero_OK_cnt = 0;               /* 出死区：连续命中计数清零 */
 						 /* 电压偏大：减小DAC1 */
 						 step = 1;
 						 set_dac1_code -= step;
@@ -342,6 +443,7 @@ uint8_t set_zero(void)
 					}
 					else if (err_mv < -(int16_t)ADC_CLOSE_DEADBAND_MV)
 					{
+						 zero_OK_cnt = 0;               /* 出死区：连续命中计数清零 */
 						 /* 电压偏小：增大DAC1 */
 						 step = 1;
 						 set_dac1_code += step;
@@ -355,38 +457,39 @@ uint8_t set_zero(void)
 						if(zero_OK_cnt >= ZERO_SUCCESS_NUM)
 						{
 							zero_OK_cnt=0;
-							set_zero_cnt = 0;
 						  adc_zero_enable =0;
 							adc_zero_inited = 0;
 							return 1;  //成功
 						}
 					}
 					
-					set_zero_cnt=set_zero_cnt+1;
-					if(set_zero_cnt % 1000 == 0)
+
+					if(set_zero_cnt >= 2000)
 					{
-						// 打印原始码值(14bit) + 换算电压(mV)，VDD=2.5V 参考
-						RETARGET_PRINTF("DAC1 code=%u    ADC_ZERO=%u   %umV \r\n",
-						now_dac1_code,
-						adc_zero_value,
-						(uint16_t)(((uint32_t)adc_zero_value * 2500UL) / 16383UL));
-					}
-					
-					
-					//看看3s内是否可以调节完成，可以的话发送信息
-					if(set_zero_cnt % 3000 == 0)
-					{
-						set_zero_cnt = 0;
+							
 						adc_zero_enable =0;
 						zero_OK_cnt=0;
 						adc_zero_inited = 0;
+						set_zero_cnt =0;
 						if(  (err_mv >= -((int16_t)ADC_CLOSE_DEADBAND_MV +1) )  &&  (err_mv <= ((int16_t)ADC_CLOSE_DEADBAND_MV +1)  )  )
+						{
+	
 							return 1;  //成功
+						}
 						else
+						{
 							return 2;	 //失败
+						}
+						
+						
 					}
+					
+					delay_ms(1);
+					
+					
+					
 			 }
-			 delay_ms(1);
+
 			 return 0;
 		}
 		return 0;	
@@ -602,6 +705,21 @@ void FrameDataAcquisition(void)
                else if (uart_rx_buffer.type == DEFLUX_TYPE)
                {
                   logic_state = LOGIC_STATE_DEFLUX;
+								 
+								 
+								  //消磁是调零前的动作
+								 	//调零前，记录下当前的档位，跳到档位A
+									adc_zero_relay =  logic_control.relay_status;
+								  
+									//强制切换到档位A，30A档位
+									RELAY_A();
+								 
+									//消磁时，细调零也就是DAC_ZERO要先设置为中点
+									DAC1_SetCode(2048);
+
+									deflux_wait_reply = 0;   /* 重新走一遍"启动消磁->等结束->回包" */
+								  
+								  
                }
                else if (uart_rx_buffer.type == RELAY_SWITCH_TYPE)
                {
@@ -616,6 +734,11 @@ void FrameDataAcquisition(void)
                   last_dac1_value = DAC1_GetCode();
                   set_zero_cnt =0;
                   zero_OK_cnt =0;
+								 
+								 
+
+								 
+								 
                }
                else if (uart_rx_buffer.type == ADC_VOL_TYPE)
                {
@@ -685,6 +808,15 @@ void main (void)
       {
          logic_control.zero_target_mv = 1259;
       }
+      // 档位调零DAC值初始化：Flash旧数据/擦除态(0xFFFF)或非法值时恢复默认2048(中点)
+      if (logic_control.a_zero_control_value == 0xFFFF || logic_control.a_zero_control_value > DAC1_MAX_CODE)
+      {
+         logic_control.a_zero_control_value = 2048;
+      }
+      if (logic_control.b_zero_control_value == 0xFFFF || logic_control.b_zero_control_value > DAC1_MAX_CODE)
+      {
+         logic_control.b_zero_control_value = 2048;
+      }
       zero_target_mv = logic_control.zero_target_mv;   // 运行时目标与Flash同步
       deflux_set_mid_mv(zero_target_mv);   // DAC0(消磁)开机输出到保存的中点
       // RETARGET_PRINTF("\r\n[INIT_Flash_ok]\r\n");
@@ -731,6 +863,7 @@ void main (void)
    {
 			
       FrameDataAcquisition();  //串口接收数据
+      ADC_OVL_Process();        //电压越限主动上报：每 1s 采一次 P2.4，超阈值主动发 0x16
 
       //根据逻辑状态处理数据
       switch (logic_state)
@@ -742,54 +875,51 @@ void main (void)
             break;
 
 				 
-         case LOGIC_STATE_ZERO_CONTROL:  //零点控制状态
+				 
+				 
+//				 //零点控制状态===在两个板子联调中没有用到===是上位机控制的
+//         case LOGIC_STATE_ZERO_CONTROL:  
 
-            if(logic_control.zero_control_value>=DAC1_MIN_CODE && logic_control.zero_control_value<=DAC1_MAX_CODE)
-            {
-               unsigned char hi, lo, chk;
-               DAC1_SetCode(logic_control.zero_control_value);
-               saveLogicControl();
-               // RETARGET_PRINTF("\r\n[INFO] zero_control_value = %d\r\n", logic_control.zero_control_value);
+//            if(logic_control.zero_control_value>=DAC1_MIN_CODE && logic_control.zero_control_value<=DAC1_MAX_CODE)
+//            {
+//               unsigned char hi, lo, chk;
+//               DAC1_SetCode(logic_control.zero_control_value);
+//               saveLogicControl();
+//               // RETARGET_PRINTF("\r\n[INFO] zero_control_value = %d\r\n", logic_control.zero_control_value);
 
-               hi  = (unsigned char)((logic_control.zero_control_value >> 8) & 0xFF);
-               lo  = (unsigned char)(logic_control.zero_control_value & 0xFF);
-               chk = (unsigned char)(0x100 - (ZERO_CONTROL_TYPE + 0x02 + hi + lo));
-               RETARGET_PRINTF("%c%c%c%c%c%c",
-                   FRAME_HEADER, ZERO_CONTROL_TYPE, 0x02, hi, lo, chk);
-            }
-            else
-            {
-               RETARGET_PRINTF("\r\n[ERROR] ZERO_CONTROL_VALUE_ERROR\r\n");
-            }
-            logic_state = LOGIC_STATE_IDLE; 
-            break;
+//               hi  = (unsigned char)((logic_control.zero_control_value >> 8) & 0xFF);
+//               lo  = (unsigned char)(logic_control.zero_control_value & 0xFF);
+//               chk = (unsigned char)(0x100 - (ZERO_CONTROL_TYPE + 0x02 + hi + lo));
+//               RETARGET_PRINTF("%c%c%c%c%c%c",
+//                   FRAME_HEADER, ZERO_CONTROL_TYPE, 0x02, hi, lo, chk);
+//            }
+//            else
+//            {
+//               RETARGET_PRINTF("\r\n[ERROR] ZERO_CONTROL_VALUE_ERROR\r\n");
+//            }
+//            logic_state = LOGIC_STATE_IDLE; 
+//            break;
+//						
 						
 						
 						
-         case LOGIC_STATE_DEFLUX:  //消磁状态
-            deflux_trigger = 1;
-            // RETARGET_PRINTF("\r\n[INFO] DEFLUX_DONE\r\n");
-            {
-               unsigned char chk;
-               chk = (unsigned char)(0x100 - (DEFLUX_TYPE + 0x00));
-               RETARGET_PRINTF("%c%c%c%c",
-                   FRAME_HEADER, DEFLUX_TYPE, 0x00, chk);
-            }
-            logic_state = LOGIC_STATE_IDLE;
-            break;
+						
+
 						
 						
+				 //控制继电器的状态	
 						
-         case LOGIC_STATE_RELAY_SWITCH:  //继电器状态
+         case LOGIC_STATE_RELAY_SWITCH:  
             /*在这里写继电器的逻辑，也就是控制继电器的开闭*/
             if (logic_control.relay_status == 0x00)
             {
                unsigned char chk;
                RELAY_A();
                saveLogicControl();
-               /*发送成功的帧*/
-               // RETARGET_PRINTF("\r\n[INFO] relay_status = %d\r\n", logic_control.relay_status);
-               // RETARGET_PRINTF("\r\n[INFO] RELAY_A\r\n");
+
+							//也要更改DAC_ZERO的值，更改为对应档位A
+							DAC1_SetCode(logic_control.a_zero_control_value);
+							
                chk = (unsigned char)(0x100 - (RELAY_SWITCH_TYPE + 0x01 + 0x00));
                RETARGET_PRINTF("%c%c%c%c%c",
                    FRAME_HEADER, RELAY_SWITCH_TYPE, 0x01, 0x00, chk);
@@ -799,9 +929,10 @@ void main (void)
                unsigned char chk;
                RELAY_B();
                saveLogicControl();
-               /*发送成功的帧*/
-               // RETARGET_PRINTF("\r\n[INFO] relay_status = %d\r\n", logic_control.relay_status);
-               // RETARGET_PRINTF("\r\n[INFO] RELAY_B\r\n");
+
+							//也要更改DAC_ZERO的值，更改为对应档位B
+							DAC1_SetCode(logic_control.b_zero_control_value);
+							
                chk = (unsigned char)(0x100 - (RELAY_SWITCH_TYPE + 0x01 + 0x01));
                RETARGET_PRINTF("%c%c%c%c%c",
                    FRAME_HEADER, RELAY_SWITCH_TYPE, 0x01, 0x01, chk);
@@ -816,31 +947,182 @@ void main (void)
 						
 						
 						
-					 case LOGIC_SET_ZERO:  //调零操作
+						
+         //消磁状态：启动消磁 -> 等 Timer2 中断里的正弦真正跑完 -> 再回包
+         case LOGIC_STATE_DEFLUX:
+         {
+            unsigned char chk;
+
+            if (deflux_wait_reply == 0)
+            {
+               /* 第一次进来：把消磁挂起来，之后每圈回来看是否跑完 */
+               if (!deflux_busy())          /* 已经在消磁就不要重复触发 */
+               {
+                  deflux_trigger = 1;
+               }
+               deflux_start_tick = counter;
+               deflux_wait_reply = 1;
+               break;                       /* 下一圈再判断是否结束 */
+            }
+
+            /* deflux_trigger 被中断取走后 deflux_running=1，跑完自动清 0；
+               两个都为 0 才算真正结束；超过 30s 兜底放行，防止中断异常时永远等下去 */
+            if ((deflux_trigger != 0u) || deflux_busy())
+            {
+               if ((counter - deflux_start_tick) < DEFLUX_TIMEOUT_TICK)
+               {
+                  break;                    /* 还在消磁，继续等 */
+               }
+            }
+
+            deflux_wait_reply = 0;
+            logic_state = LOGIC_STATE_IDLE;
+
+            /* 消磁真正结束才回包：上位机收到这帧就代表可以开始调零，不用再死等固定秒数 */
+            chk = (unsigned char)(0x100 - (DEFLUX_TYPE + 0x00));
+            RETARGET_PRINTF("%c%c%c%c%c",
+                FRAME_HEADER, DEFLUX_TYPE, 0x00, chk);
+            break;
+         }
+												
+						
+						
+						
+						
+						//调零操作----上位机会先发消磁，再发调零
+						
+						/*消磁操作必须在（30A）A档位*/
+						/*
+						
+							  逻辑是
+								记录当前档位
+						
+						    先切换到（30A）A档位，消磁，调零，记录A档位下的DAC_ZERO的值，切换到（5A）B档位，执行调零，记录下B档位下DAC_ZERO的值
+						
+								恢复到之前记录的档位
+						*/	
+					 case LOGIC_SET_ZERO: 
 					 {
-							uint8_t zero_ret; //调零返回值
-							adc_zero_enable = 1;
-							zero_ret = set_zero();  //************循环调零操作*********
-							if(zero_ret ==1 )      //发送成功
+							uint8_t zero_30A_ret; //调零返回值
+							uint8_t zero_5A_ret;
+
+							/* 消磁还没结束就先等着：不然读到的零点还在被正弦扫动，调零必然调不准 */
+							if (deflux_busy() || (deflux_trigger != 0u))
 							{
+							   if (zero_wait_started == 0)
+							   {
+							      zero_wait_started = 1;
+							      zero_wait_tick = counter;
+							   }
+							   if ((counter - zero_wait_tick) < DEFLUX_TIMEOUT_TICK)
+							   {
+							      break;                     /* 等消磁结束再来调零，最多等 30s 兜底 */
+							   }
+							}
+							zero_wait_started = 0;
+							adc_zero_enable = 1;
+						 
+							do
+							{
+								zero_30A_ret = set_zero();
+							} while (zero_30A_ret == 0);   // 循环调零直到成功(1)或失败(2)
+
+							
+							if(zero_30A_ret ==1 )       //调零30A档位成功
+							{
+		
 								//保存数据
 								logic_control.zero_control_value = DAC1_GetCode();
-								saveLogicControl();
+								//到了这里才完成30A档位的消磁和调零操作，此时记录DAC_ZERO的值
+								logic_control.a_zero_control_value = logic_control.zero_control_value;
+
 								
-								logic_state = LOGIC_STATE_IDLE; 
-								{
-								 unsigned char chk;
-								 chk = (unsigned char)(0x100 - (SET_ZERO_TYPE + 0x01 + 0x01));
-								 RETARGET_PRINTF("%c%c%c%c%c",
-										 FRAME_HEADER, SET_ZERO_TYPE, 0x01 ,0x01, chk);
-								}		
+								RELAY_B();
+								
+								
+								
+									//5A档再次调零：set_zero() 返回 1=成功 2=失败(超时)，失败则恢复原档位、档位DAC_ZERO并回失败帧
+									
+
+										adc_zero_enable = 1;   // 30A成功后已置0，5A重新使能
+										do
+										{
+											zero_5A_ret = set_zero();
+										} while (zero_5A_ret == 0);   // 循环调零直到成功(1)或失败(2)
+										
+										
+										if (zero_5A_ret == 1)
+										{
+												//调零完成记录下5A的DAC_ZERO值，然后进行恢复档位
+												logic_control.zero_control_value = DAC1_GetCode();
+												logic_control.b_zero_control_value = logic_control.zero_control_value;		
+													
+												//恢复档位
+												if(adc_zero_relay == 0)
+												{
+													RELAY_A();//
+													DAC1_SetCode(logic_control.a_zero_control_value);
+												}
+												else if(adc_zero_relay == 1)
+												{
+													RELAY_B();//
+													DAC1_SetCode(logic_control.b_zero_control_value);
+												}
+												
+												//保存到flash
+												saveLogicControl();
+												
+												//发送成功信息
+												logic_state = LOGIC_STATE_IDLE; 
+												{
+												 unsigned char chk;
+												 chk = (unsigned char)(0x100 - (SET_ZERO_TYPE + 0x01 + 0x01));
+												 RETARGET_PRINTF("%c%c%c%c%c",
+														 FRAME_HEADER, SET_ZERO_TYPE, 0x01 ,0x01, chk);
+												}		
+										}
+										else if (zero_5A_ret == 2) //第二次失败
+										{
+											if (adc_zero_relay == 0)
+											{
+												RELAY_A();
+												DAC1_SetCode(logic_control.a_zero_control_value);
+											}
+											else
+											{
+												RELAY_B();
+												DAC1_SetCode(logic_control.b_zero_control_value);
+											}
+											saveLogicControl();   // 保留30A已调好的值
+											logic_state = LOGIC_STATE_IDLE;
+											{
+												unsigned char chk;
+												chk = (unsigned char)(0x100 - (SET_ZERO_TYPE + 0x01 + 0x09));
+												RETARGET_PRINTF("%c%c%c%c%c",
+												FRAME_HEADER, SET_ZERO_TYPE, 0x01, 0x09, chk);  //第二次失败发送09
+											}
+										}
+										
+										
+									
+								 //5A档再次调零：set_zero() 返回 1=成功 2=失败(超时)，失败则恢复原档位、档位DAC_ZERO并回失败帧
+									
+
+					
+								
+								
+								
+								
 							}
-							else if(zero_ret ==2 ) //发送失败是 00 
-							{
+
+
 							
-								//保存数据
-								logic_control.zero_control_value = last_dac1_value;
-								saveLogicControl();									
+							else if(zero_30A_ret ==2 ) //第一次失败是发送 00 
+							{
+								
+								//保存数据，调零失败也要保存，而不是恢复成上一次的值
+								logic_control.zero_control_value = DAC1_GetCode();
+								saveLogicControl();						
 								
 								logic_state = LOGIC_STATE_IDLE; 
 								{
@@ -850,26 +1132,21 @@ void main (void)
 										 FRAME_HEADER, SET_ZERO_TYPE, 0x01 ,0x00, chk);
 								}		
 							}
+							
 					}
           break;						
 						
 						
-				 case LOGIC_ADC_VOL:  //ADC_VOL 电压上报（上位机 1s 请求一次）
-				 {
-						unsigned char hi, lo, chk;
-						uint16_t mv = ADC_P24_Read_MV();   // 多读平均返回 mV，函数内已恢复 ADC0MX 为 P2.6
-						hi = (unsigned char)((mv >> 8) & 0xFF);
-						lo = (unsigned char)(mv & 0xFF);
-						chk = (unsigned char)(0x100 - (ADC_VOL_TYPE + 0x02 + hi + lo));
-						RETARGET_PRINTF("%c%c%c%c%c%c",
-								FRAME_HEADER, ADC_VOL_TYPE, 0x02, hi, lo, chk);
-						logic_state = LOGIC_STATE_IDLE;
-				 }
-				 break;
+
+				 
 					 
 				 
-				 case LOGIC_ZERO_CAL:  //零点校准的操作
-				 {
+
+				 
+				 //零点校准的操作
+				 
+				 case LOGIC_ZERO_CAL:  
+				 {	 
 				 	 //零点校准：采样 ADC_ZERO(P2.6)，电压在 1259mV±200mV 内 -> 成功（并把采样值设为调零目标）；否则失败
 				 	 static uint8_t zero_cal_inited = 0;
 				 	 uint16_t mv;
@@ -886,7 +1163,7 @@ void main (void)
 //						adc_zero_value,
 //						(uint16_t)(((uint32_t)adc_zero_value * 2500UL) / 16383UL));
 
-					 
+					 		 			 RETARGET_PRINTF("%c%c%c%c%c",  FRAME_HEADER, ZERO_CAL_TYPE, 0x01, 0x01, 0x01);		
 					 
 				 	 if (mv >= (uint16_t)(1259u - 500u) && mv <= (uint16_t)(1259u + 500u))
 				 	 {
@@ -918,9 +1195,30 @@ void main (void)
 				 	 }
 				 }
 				 break;					 
+			
+
+					
+					
+					
+//					//ADC_VOL 电压上报（上位机 1s 请求一次）
+//				 case LOGIC_ADC_VOL:  
+//				 {
+//						unsigned char hi, lo, chk;
+//						uint16_t mv = ADC_P24_Read_MV();   // 多读平均返回 mV，函数内已恢复 ADC0MX 为 P2.6
+//						hi = (unsigned char)((mv >> 8) & 0xFF);
+//						lo = (unsigned char)(mv & 0xFF);
+//						chk = (unsigned char)(0x100 - (ADC_VOL_TYPE + 0x02 + hi + lo));
+//						RETARGET_PRINTF("%c%c%c%c%c%c",
+//								FRAME_HEADER, ADC_VOL_TYPE, 0x02, hi, lo, chk);
+//						logic_state = LOGIC_STATE_IDLE;
+//				 }
+//				 break;
+//				 
+//				 //后续在这里增加上报ADC_ZERO的
+
+				 
 					 
-					 
- 
+         
 					 
       }
 
